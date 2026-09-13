@@ -139,11 +139,13 @@ File references are to those repos.
        cheap.
      - *Grid:* the web app bakes an upright thumbnail into the page image.
    - Storage is the same for either orientation, so the 54-photo budget holds.
-8. **Background music and two sound effects, using loopy-soundlib.** The
-   `lps/` library from `G:\LoopySoundlib\loopy-soundlib` is vendored into
-   `cart/`. It is the user's own code, GPL-2.0-or-later, and proven on
-   hardware in LoopyPuzzleBobble. It provides the sequencer, the effects
-   engine and the MIDI baker.
+8. **Background music and two sound effects, integrated from
+   LoopyPuzzleBobble.** Nothing is vendored. The useful parts of
+   PuzzleBobble's hardware-proven sound code are adapted straight into
+   `cart/platform/` and `cart/tools/`: `platform/lp_sound.c`,
+   `platform/lp_sfx.c`, and the sequencer, effects engine and MIDI baker they
+   build on. LoopySoundlib is unfinished; only its `docs/hardware.md` and
+   `docs/instruments.md` are used, as reference.
    - **Hardware:** a uPD937 synth fed MIDI over SCI1. It has 4 channels with
      6/4/2/4 notes each, and 110 Casio presets that are **not** General MIDI.
      Velocity is on/off only, and sustain is the only controller that works.
@@ -335,8 +337,11 @@ loopy-photo-cart/
   frame-time readout and the emulator).
 
 ### Phase 2b — Sound
-- Vendor soundlib `lps/`: `LPS_PLAN_CUSTOM`, music mask 0x0B, effects mask
-  0x04, ticked from our ITU1 interrupt (PuzzleBobble's `platform/lp_sound.c`).
+- Integrate PuzzleBobble's sound code directly (no vendored library), set up
+  as in its `platform/lp_sound.c`:
+  - music on channels 0, 1 and 3 (mask 0x0B);
+  - effects on channel 2 (mask 0x04);
+  - ticked from our ITU1 interrupt.
 - Fetch both candidate MIDIs into `cart/music/` with a `SOURCES.md` recording
   URL, edition and licence. Write the bass-split pre-pass. Bake both songs and
   listen in LoopyMSE, then choose one.
@@ -507,10 +512,6 @@ loopy-photo-cart/
    metadata in ROMs.
 8. **Overscan.** 240p on real TVs crops edges. Photos can go edge to edge, but
    grid UI, cursor and dialogs stay inside a ~16 px safe margin.
-9. **Soundlib licence headers disagree.** The owner's intent is GPL-2.0-or-later,
-   but the `lps/*` file headers and README say GPL-3.0-or-later, and
-   `NOTICE.md` says "needs compliance check". Fix the headers upstream before
-   vendoring. Otherwise the combined ROM would effectively be GPL-3.
 
 ---
 
