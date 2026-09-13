@@ -20,6 +20,14 @@ PACK_OFFSET = 0x40000
 # Stamped into the template descriptor (src/descriptor.c); at most 16 chars.
 BUILD_ID ?= dev
 
+# Shown on the help screen: the web app's version, from web/package.json, so
+# the cartridge and the site's footer always agree. scripts/build.sh passes it
+# in, since it builds from a copy of cart/ alone.
+VERSION ?= $(shell sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' ../web/package.json 2>/dev/null)
+ifeq ($(VERSION),)
+VERSION = dev
+endif
+
 WONDERFUL_TOOLCHAIN ?= /opt/wonderful
 TOOLBIN ?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-sh-elf/bin/
 PREFIX  ?= sh-elf-
@@ -56,7 +64,8 @@ CFLAGS += -Wall -Wextra -Wno-unused-parameter
 CFLAGS += -Wno-array-bounds
 CFLAGS += -Iinclude -Iplatform -Iplatform/lps -Isrc
 CFLAGS += -DCASIO_LOOPY
-CFLAGS += -DLPC_PACK_OFFSET=$(PACK_OFFSET)ul -DLPC_BUILD_ID=\"$(BUILD_ID)\"
+CFLAGS += -DLPC_PACK_OFFSET=$(PACK_OFFSET)ul -DLPC_BUILD_ID=\"$(BUILD_ID)\" \
+          -DLPC_VERSION=\"$(VERSION)\"
 # Test-only switches, e.g. EXTRA_CFLAGS=-DLPC_OSD_FRAMES=100000.
 EXTRA_CFLAGS ?=
 CFLAGS += $(EXTRA_CFLAGS)
@@ -80,7 +89,7 @@ all: $(ROM) $(ROMSWP)
 
 # make can't see changes to variables: stamp the ones that change the output
 # into a sentinel every object depends on. Its mtime only moves when they do.
-FLAGSIG := BUILD_ID=$(BUILD_ID) PACK_OFFSET=$(PACK_OFFSET) SRAMSIZE=$(SRAMSIZE) STACKSIZE=$(STACKSIZE) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+FLAGSIG := BUILD_ID=$(BUILD_ID) VERSION=$(VERSION) PACK_OFFSET=$(PACK_OFFSET) SRAMSIZE=$(SRAMSIZE) STACKSIZE=$(STACKSIZE) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
 force:
 $(OBJDIR)/.flags: force
 	@mkdir -p $(OBJDIR)

@@ -24,6 +24,7 @@ Everything runs locally in your browser. Your photos are never uploaded.
   Op. 36 No. 1 play in turn in the background. C pauses the music, and D
   shows help.
 - **Capacity:** up to 54 photos in a 4 MB ROM, for the Floopy Drive.
+- **Emulators:** the web app can also save the ROM byteswapped for MAME.
 
 ## Repository
 
@@ -46,8 +47,8 @@ Everything runs locally in your browser. Your photos are never uploaded.
 - **Demo ROM:** `cd web && npm run demo` builds it reproducibly.
 - **Hosting:** the web app deploys to <https://loopyphotocart.com> (GitHub
   Pages) on every push to `main`.
-- **Releases:** pushing a `v*` tag publishes the template, the demo ROM and
-  the site.
+- **Releases:** pushing a `v*` tag publishes the template, the demo ROM (plus
+  a byteswapped copy for MAME) and the site.
 
 ## Licence
 

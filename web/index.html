@@ -67,8 +67,21 @@
     </main>
 
     <div class="bar">
-      <div id="status" class="status" role="status" aria-live="polite"></div>
-      <button id="build" class="primary" disabled>Build ROM</button>
+      <div class="bar-info">
+        <p class="formats">
+          <strong>Loopy</strong> builds a normal ROM for the
+          <a href="https://ko-fi.com/partlyhuman/shop" target="_blank" rel="noopener">Floopy Drive</a>
+          and emulators like LoopyMSE.
+          <strong>MAME</strong> builds a byteswapped ROM for emulators like MAME.
+        </p>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </div>
+      <div class="bar-actions">
+        <div class="seg" role="group" aria-label="ROM format">
+          <button id="fmt-loopy" title="For a real Loopy: a Floopy Drive or flash cartridge">Loopy</button><button id="fmt-mame" title="Byteswapped, for the MAME emulator">MAME</button>
+        </div>
+        <button id="build" class="primary" disabled>Build ROM</button>
+      </div>
     </div>
 
     <footer class="credits">

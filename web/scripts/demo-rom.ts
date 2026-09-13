@@ -12,7 +12,8 @@
 //
 // With a manifest the output is reproducible: its title and date are used
 // instead of today's date, and photo paths are relative to the manifest.
-// Photos are always dithered, as in the web app.
+// Photos are always dithered, as in the web app. A byteswapped copy for
+// emulators like MAME is written beside out.bin as out-byteswapped.bin.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -20,6 +21,7 @@ import jpeg from "jpeg-js";
 
 import {
   buildCartridge,
+  byteswapRom,
   defaultCrop,
   renderPhoto,
   resize,
@@ -79,3 +81,8 @@ if (report.errors.length) {
 }
 writeFileSync(out, rom);
 console.log(`${report.photos} photos, ${report.pages} pages, ROM ${rom.length} bytes -> ${out}`);
+
+// The same ROM byteswapped, for emulators like MAME, beside it.
+const swappedOut = out.replace(/\.bin$/i, "") + "-byteswapped.bin";
+writeFileSync(swappedOut, byteswapRom(rom));
+console.log(`byteswapped ROM -> ${swappedOut}`);

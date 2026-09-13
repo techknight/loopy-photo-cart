@@ -32,6 +32,9 @@ fi
 
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_ID="${BUILD_ID:-dev}"
+# The copy below holds cart/ alone, so read the version where web/ is.
+VERSION="${VERSION:-$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' "$SRC/../web/package.json" 2>/dev/null)}"
+VERSION="${VERSION:-dev}"
 
 case "$SRC" in
     /mnt/*)
@@ -40,11 +43,11 @@ case "$SRC" in
         # Not --delete for obj/: it is what makes an incremental build
         # incremental. Sources are mirrored exactly.
         rsync -a --delete --exclude obj/ --exclude build/ "$SRC/" "$WORK/"
-        make -C "$WORK" WONDERFUL_TOOLCHAIN="$WF" BUILD_ID="$BUILD_ID" "$@"
+        make -C "$WORK" WONDERFUL_TOOLCHAIN="$WF" BUILD_ID="$BUILD_ID" VERSION="$VERSION" "$@"
         mkdir -p "$SRC/build"
         cp "$WORK"/build/*.bin "$WORK"/build/*.elf "$SRC/build/"
         ;;
     *)
-        make -C "$SRC" WONDERFUL_TOOLCHAIN="$WF" BUILD_ID="$BUILD_ID" "$@"
+        make -C "$SRC" WONDERFUL_TOOLCHAIN="$WF" BUILD_ID="$BUILD_ID" VERSION="$VERSION" "$@"
         ;;
 esac

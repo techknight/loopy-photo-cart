@@ -8,7 +8,7 @@
 // Usage: npm run build && node scripts/smoke.mjs out-dir photo1.jpg photo2.jpg ...
 // (needs `npx playwright install chromium` once)
 
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { preview } from "vite";
 
@@ -67,6 +67,25 @@ try {
   await download.saveAs(romPath);
   console.log(`status: ${await page.textContent("#status")}`);
   console.log(`saved ${romPath}`);
+
+  // The MAME format is the same ROM with every 16-bit word byteswapped.
+  await page.click("#fmt-mame");
+  const [mameDownload] = await Promise.all([
+    page.waitForEvent("download", { timeout: 120_000 }),
+    page.click("#build"),
+  ]);
+  const mamePath = `${outDir}/smoke-mame.bin`;
+  await mameDownload.saveAs(mamePath);
+  if (mameDownload.suggestedFilename() !== "loopy-photo-cart-byteswapped.bin") {
+    problems.push(`MAME download named ${mameDownload.suggestedFilename()}`);
+  }
+  const loopy = readFileSync(romPath);
+  const mame = readFileSync(mamePath);
+  if (mame.length !== loopy.length || !Buffer.from(loopy).swap16().equals(mame)) {
+    problems.push("the MAME ROM is not the Loopy ROM byteswapped");
+  }
+  console.log(`status: ${await page.textContent("#status")}`);
+  console.log(`saved ${mamePath}`);
 } catch (e) {
   problems.push(String(e));
 } finally {

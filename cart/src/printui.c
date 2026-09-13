@@ -39,6 +39,8 @@
 #define BOX_H 88
 #define TITLE_Y (BOX_Y + 22)
 #define LINE_Y  (BOX_Y + 60)
+// A title with no line under it sits in the middle of the box.
+#define TITLE_ONLY_Y (BOX_Y + (BOX_H - LPC_LARGE_HEIGHT) / 2)
 
 // A result shows this long and then goes by itself. It takes no input: asking
 // for a press after a print only invites a mis-press (hardware feedback).
@@ -54,7 +56,8 @@ static void Dialog(const char *title, uint8_t title_colour, const char *line)
 	LPC_FillRect(BOX_X, BOX_Y, BOX_W, BOX_H, LPC_UI_PANEL);
 	LPC_FillRect(BOX_X, BOX_Y, BOX_W, 2, LPC_UI_ACCENT);
 	LPC_FillRect(BOX_X, BOX_Y + BOX_H - 2, BOX_W, 2, LPC_UI_ACCENT);
-	LPC_TextDrawCentred(LPC_FONT_LARGE, TITLE_Y, title, title_colour);
+	LPC_TextDrawCentred(LPC_FONT_LARGE, line ? TITLE_Y : TITLE_ONLY_Y, title,
+	                    title_colour);
 	if (line)
 		LPC_TextDrawCentred(LPC_FONT_SMALL, LINE_Y, line, LPC_UI_GREY);
 }

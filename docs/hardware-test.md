@@ -22,15 +22,32 @@
 - **Sound:** music and effects implemented flawlessly.
 - **Screen:** everything is great.
 
+## Results, second session (2026-09-13)
+
+All confirmed on hardware:
+
+- stickers show the whole photo;
+- the viewer letterboxes landscape photos and pillarboxes portrait ones;
+- the print result goes away by itself;
+- the playlist plays *La Candeur*, then Clementi, then starts over;
+- the help popover shows `loopyphotocart.com`.
+
+The first calibration chart drew its circle 200 × 200 dots, so it looked wide
+on the TV (and prints wide): that was the chart, not the viewer. The circle
+is now drawn to print round, and looks round in both charts on the TV.
+
+Changes from this session's feedback, so far checked in LoopyMSE only:
+
+- a one-line print result such as PRINTED! is centred in its box;
+- the help popover's bottom line shows the version (v1.0.1).
+
 ## Next session: things to confirm
 
 | Check | ROM |
 |---|---|
-| Stickers now show the whole photo, and a circle prints round (`calibration.bin` chart 1) | `cart\build\calibration.bin` |
-| Photos in the viewer have black bars above and below (landscape) or at the sides (portrait) and look right | `cart\build\fixture-demo.bin` |
-| The print result goes away by itself | any |
-| The music plays *La Candeur* (36 s), then Clementi's Sonatina (58 s), then starts over; C still pauses and resumes it. (Already confirmed in LoopyMSE's serial log: Clementi's first note follows *La Candeur*'s 241st, and *La Candeur* returns after Clementi's 333.) | `cart\build\fixture-demo.bin` |
-| The help popover shows `loopyphotocart.com` (checked in LoopyMSE) | any |
+| PRINTED! sits in the middle of its box | any |
+| The help popover's bottom line reads "Version 1.0.1" | any |
+| The redrawn calibration circle prints round (chart 1). Some 1-px grid lines disappear from chart 2 on the TV, because the viewer skips 37 of the 224 dot rows to fit a portrait photo on screen | `cart\build\calibration.bin` |
 
 The checklist below is kept for future sessions.
 

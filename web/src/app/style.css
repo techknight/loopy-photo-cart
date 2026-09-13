@@ -363,7 +363,35 @@ a:focus-visible {
   border-radius: var(--radius);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.bar-info {
+  min-width: 0;
+}
+
+.formats {
+  margin: 0;
+  font-size: 13px;
+  color: var(--grey);
+}
+
+.formats strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.status:empty {
+  display: none;
+}
+
+.bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 12px;
 }
 

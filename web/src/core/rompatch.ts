@@ -69,3 +69,18 @@ export function buildRom(template: Uint8Array, pack: Uint8Array): Uint8Array {
   view.setUint32(8, loopyChecksum(rom));
   return rom;
 }
+
+/** The ROM with the two bytes of every 16-bit word swapped: the layout MAME
+ *  expects for a Loopy cartridge (the same as `dd conv=swab`, which the cart
+ *  build uses for its -byteswapped.bin). */
+export function byteswapRom(rom: Uint8Array): Uint8Array<ArrayBuffer> {
+  if (rom.byteLength % 2 !== 0) {
+    throw new PackFormatError("A ROM must be a whole number of 16-bit words.");
+  }
+  const out = new Uint8Array(rom.byteLength);
+  for (let i = 0; i < rom.byteLength; i += 2) {
+    out[i] = rom[i + 1]!;
+    out[i + 1] = rom[i]!;
+  }
+  return out;
+}

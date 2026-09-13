@@ -8,6 +8,7 @@
 import "./style.css";
 
 import {
+  byteswapRom,
   clampCrop,
   defaultCrop,
   keptFraction,
@@ -53,6 +54,10 @@ let lastFrame: { id: number; frame: IndexedFrame; orientation: number } | null =
 let pages: IndexedFrame[] = [];
 let pageIndex = 0;
 let building = false;
+// "mame" saves the ROM byteswapped, the layout MAME loads.
+type RomFormat = "loopy" | "mame";
+let romFormat: RomFormat = "loopy";
+let buildFormat: RomFormat = "loopy";
 let editorBitmap: ImageBitmap | null = null;
 
 const editor = new CropEditor($("editor"), (crop) => {
@@ -180,16 +185,19 @@ worker.onmessage = (event: MessageEvent<FromWorker>) => {
       break;
     case "built": {
       building = false;
-      const blob = new Blob([msg.rom], { type: "application/octet-stream" });
+      const mame = buildFormat === "mame";
+      const bytes = mame ? byteswapRom(new Uint8Array(msg.rom)) : msg.rom;
+      const name = mame ? "loopy-photo-cart-byteswapped.bin" : "loopy-photo-cart.bin";
+      const blob = new Blob([bytes], { type: "application/octet-stream" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "loopy-photo-cart.bin";
+      a.download = name;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
       const mb = (msg.rom.byteLength / 1048576).toFixed(2);
       const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
       setStatus(
-        `Built loopy-photo-cart.bin: ${plural(msg.photos, "photo")} on ${plural(msg.pages, "page")}, ${mb} MB of 4 MB.`,
+        `Built ${name}${mame ? " (for emulators like MAME)" : ""}: ${plural(msg.photos, "photo")} on ${plural(msg.pages, "page")}, ${mb} MB of 4 MB.`,
         "ok",
       );
       refreshBar();
@@ -441,9 +449,21 @@ function refreshAll(): void {
   drawPreview();
 }
 
+function setFormat(format: RomFormat): void {
+  romFormat = format;
+  for (const [id, on] of [["fmt-loopy", format === "loopy"], ["fmt-mame", format === "mame"]] as const) {
+    $(id).classList.toggle("on", on);
+    $(id).setAttribute("aria-pressed", String(on));
+  }
+}
+$("fmt-loopy").addEventListener("click", () => setFormat("loopy"));
+$("fmt-mame").addEventListener("click", () => setFormat("mame"));
+setFormat("loopy");
+
 $("build").addEventListener("click", async () => {
   if (building) return;
   building = true;
+  buildFormat = romFormat;
   refreshBar();
   setStatus("Loading the cartridge template…");
   try {

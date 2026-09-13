@@ -33,6 +33,10 @@
 #define LPC_PACK_VERSION 1
 #define LPC_DESC_VERSION 1
 
+#ifndef LPC_VERSION
+#define LPC_VERSION "dev"
+#endif
+
 #ifndef LPC_BUILD_ID
 #define LPC_BUILD_ID "dev"
 #endif

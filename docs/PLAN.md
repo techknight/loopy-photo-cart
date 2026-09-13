@@ -625,6 +625,17 @@ loopy-photo-cart/
       photos, 3 pages, validated) and `loopy-photo-cart-site.zip`;
     - the playlist (*La Candeur* → Clementi → repeat) and the help popover's
       domain were checked in LoopyMSE before tagging.
+  - **v1.0.1 (2026-09-13):**
+    - photos are always dithered (no checkbox);
+    - the version shows in the site's footer and at the bottom of the help
+      popover, both from `web/package.json`;
+    - a one-line print result is centred in its box;
+    - the web app's MAME button saves `loopy-photo-cart-byteswapped.bin`, and
+      releases add `loopy-photo-cart-demo-byteswapped.bin` (boots in MAME
+      0.288; the unswapped ROM doesn't);
+    - the calibration chart's circle is drawn to print round.
+    - Confirmed on hardware before tagging: whole-photo stickers, letterboxed
+      viewer, auto-dismissing print result, playlist, help domain.
 
 ---
 

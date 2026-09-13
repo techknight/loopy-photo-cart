@@ -11,7 +11,8 @@ npm run demo
 ```
 
 This builds `demo/build/loopy-photo-cart-demo.bin` with the web app's own
-image and pack code. The manifest fixes the title and date, so the same
+image and pack code, and beside it `loopy-photo-cart-demo-byteswapped.bin`,
+the same ROM byteswapped for emulators like MAME. The manifest fixes the title and date, so the same
 commit always gives the same ROM. Tagged releases build and
 publish it (`.github/workflows/release.yml`).
 

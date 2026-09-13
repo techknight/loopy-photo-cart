@@ -101,3 +101,12 @@ GitHub plan (docs/PLAN.md §8).
    and off for grid pages.
 6. **Assemble:** 64×60 thumbnails go onto 3×3 grid pages, then the pack is
    built and appended to the template. The ROM is validated before download.
+7. **Save:** the format buttons next to Build ROM choose the file. **Loopy**
+   saves `loopy-photo-cart.bin` as the cartridge holds it, for a Floopy Drive
+   or flash cartridge. **MAME** saves `loopy-photo-cart-byteswapped.bin`, the same
+   ROM with the bytes of every 16-bit word swapped (`byteswapRom`), which is
+   the layout MAME loads. Checked in MAME 0.288: the byteswapped ROM boots to
+   the grid, the unswapped one shows a black screen. Run it with
+   `mame casloopy -cart loopy-photo-cart-byteswapped.bin`; MAME needs the Loopy BIOS
+   set (`casloopy`: `hd6437021.lsi302` and `hn62434fa.lsi352`), which isn't
+   part of this project.

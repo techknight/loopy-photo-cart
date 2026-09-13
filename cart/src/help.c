@@ -83,6 +83,11 @@ void LPC_HelpShow(void)
 	y += LINE_H;
 	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X, y, "GPL-2.0-or-later", LPC_UI_DIM);
 
+	// The same version as the web app's footer, on the panel's last line.
+	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X,
+	             PANEL_Y + PANEL_H - 2 - 8 - LPC_SMALL_HEIGHT,
+	             "Version " LPC_VERSION, LPC_UI_DIM);
+
 	(void) LP_PadEdges();
 	for (;;) {
 		LP_VideoPresent();

@@ -66,4 +66,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes \
             cart/build/loopy-photo-cart-template.bin \
             demo/build/loopy-photo-cart-demo.bin \
+            demo/build/loopy-photo-cart-demo-byteswapped.bin \
             loopy-photo-cart-site.zip

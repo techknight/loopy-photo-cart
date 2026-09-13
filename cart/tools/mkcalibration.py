@@ -15,8 +15,9 @@
 #                 portrait photos are, to show which way up it prints
 #
 # Each chart has a 1 px grid every 16 px (bold every 64), a red border on the
-# outermost pixels, a circle 200 px across in stored pixels, and a horizontal
-# and a vertical bar each exactly 200 px long. Measured on the sticker:
+# outermost pixels, a circle drawn to print round (so it also looks round in
+# the viewer), and a horizontal and a vertical bar each exactly 200 px long.
+# Measured on the sticker:
 #
 #   whole image width / height  -> the printed shape (STICKER_ASPECT)
 #   horizontal bar / vertical   -> the printer's dot shape
@@ -57,8 +58,13 @@ def chart(width, height, label, up_arrow):
 
     d.rectangle([0, 0, width - 1, height - 1], outline=RED, width=2)
 
+    # A circle that prints round: dots are wider than tall, so it takes more
+    # dots down than across. A portrait chart's x runs along the printer's
+    # lines, so there it takes more dots across.
     cx, cy = width // 2, height // 2
-    d.ellipse([cx - 100, cy - 100, cx + 99, cy + 99], outline=BLUE, width=2)
+    stretch = lpcpack.DOT_W_MM / lpcpack.DOT_H_MM
+    rx, ry = (90, round(90 * stretch)) if width > height else (round(90 * stretch), 90)
+    d.ellipse([cx - rx, cy - ry, cx + rx - 1, cy + ry - 1], outline=BLUE, width=2)
 
     # The measuring bars: exactly 200 px, 3 px thick, with end ticks.
     d.rectangle([cx - 100, cy - 1, cx + 99, cy + 1], fill=GREEN)

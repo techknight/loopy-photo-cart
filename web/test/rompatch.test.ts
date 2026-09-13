@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 import { loopyChecksum } from "../src/core/checksum.ts";
 import { crc32 } from "../src/core/crc32.ts";
 import { readDescriptor, TemplateError } from "../src/core/descriptor.ts";
-import { buildRom, PackFormatError, PackTooLargeError } from "../src/core/rompatch.ts";
+import { buildRom, byteswapRom, PackFormatError, PackTooLargeError } from "../src/core/rompatch.ts";
 
 function fixture(name: string): Uint8Array {
   return new Uint8Array(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)));
@@ -107,5 +107,18 @@ describe("buildRom", () => {
     huge.set(pack.subarray(0, 8));
     new DataView(huge.buffer).setUint32(8, huge.byteLength);
     expect(() => buildRom(template, huge)).toThrow(PackTooLargeError);
+  });
+});
+
+describe("byteswapRom", () => {
+  it("swaps the bytes of every word, and swapping twice gives the ROM back", () => {
+    const swapped = byteswapRom(rom);
+    expect(swapped.byteLength).toBe(rom.byteLength);
+    expect([...swapped.subarray(0, 4)]).toEqual([rom[1], rom[0], rom[3], rom[2]]);
+    expect(Buffer.from(byteswapRom(swapped)).equals(Buffer.from(rom))).toBe(true);
+  });
+
+  it("refuses an odd length", () => {
+    expect(() => byteswapRom(new Uint8Array(3))).toThrow(PackFormatError);
   });
 });
