@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2026 loopy-soundlib contributors
  * Licensed under the GNU General Public License, version 2 or later.
- * See LICENSE.
+ * See COPYING.md.
  *
  * The SCI1 register setup follows Kasami's loopy-homebrew-template (zlib; see
  * NOTICE.md).
@@ -10,19 +10,18 @@
  *
  * Why macros and not a function table
  * ----------------------------------
- * The host build exists so the desktop can run the REAL driver -- the same ring
+ * With LPS_HOST set, a desktop program can run the REAL driver -- the same ring
  * queue, the same running-status logic, the same drop policy -- and produce
  * byte-for-byte the wire output the console would. That only works if there is
- * exactly one implementation. A link-time backend swap (which is how loopy-glider
- * does it) would mean the host tests a stand-in, and every invariant would be
- * checking the wrong code.
+ * exactly one implementation. A link-time backend swap would mean the desktop
+ * tests a stand-in, and every invariant would be checking the wrong code.
  *
  * So the port surface is function-like macros, and the rule that keeps #ifdef out
  * of every other file is: no logic module ever names a register. If you find
  * yourself wanting to write to SCI_TDR1 outside this header, add a macro instead.
  *
  * lps_clock.c is the single permitted exception -- its whole body is compiled out
- * on the host, because there is no host equivalent of a hardware timer and
+ * on the desktop, because there is no desktop equivalent of a hardware timer and
  * pretending otherwise would be testing nothing.
  *
  *
@@ -46,8 +45,8 @@
  * These are deliberately empty. The byte queue is single-producer /
  * single-consumer with volatile uint8_t indices: the main line only ever moves
  * the head, the tick only ever moves the tail, and a byte store is atomic with
- * respect to an interrupt taken between instructions. loopy-glider has shipped
- * on that argument.
+ * respect to an interrupt taken between instructions. That has held up on
+ * hardware.
  *
  * They exist as macros anyway so that a game running LPS_Tick from a different
  * priority level than its sound calls -- or on a future multi-core target -- has
@@ -64,7 +63,7 @@
  * caller never has to include a platform header to configure the library.
  *
  * Group 0 is MIDI channels 1 and 2; group 1 is channel 3. Channel 0 is not
- * attenuated by either -- see docs/hardware.md.
+ * attenuated by either.
  */
 #define LPS_VOL_GROUP0 0
 #define LPS_VOL_GROUP1 1
@@ -76,8 +75,8 @@
 
 #if LPS_HOST
 
-/* Host backend. Implemented by host/lpshost_log.c, which timestamps every byte
- * against the harness's virtual clock and writes the wirelog. */
+/* Desktop backend. The desktop program supplies these two functions, typically
+ * timestamping every byte against its own virtual clock and logging it. */
 
 #define LPS_HB_SCI_INIT 0
 #define LPS_HB_CHANNELS 1

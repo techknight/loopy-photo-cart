@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2026 loopy-soundlib contributors
  * Licensed under the GNU General Public License, version 2 or later.
- * See LICENSE.
+ * See COPYING.md.
  */
 
 #include "lps.h"

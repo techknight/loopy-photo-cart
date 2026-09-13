@@ -7,7 +7,7 @@
  * LoopyDOOM's platform/i_music_loopy.c (GPL-2.0-or-later). See NOTICE.md.
  *
  *
- * Songs are compiled offline by tools/lps_bake.py into a flat array of 4-byte
+ * Songs are compiled offline by tools/sound/lps_bake.py into a flat array of 4-byte
  * events with delta timing. Playback runs in the tick interrupt, so it is
  * unaffected by frame rate -- a game that drops to 8 fps still keeps time.
  */
@@ -25,8 +25,8 @@
  * Spilling to the next tick costs 2 ms of skew that nobody can hear.
  *
  * 8 covers 99% of ticks outright across eleven streams of real commercial Loopy
- * music, with a worst observed burst of 14. See spike/d3_soak/RESULTS.md -- and
- * note that the measurement is pessimistic, because the captures it is drawn from
+ * music, with a worst observed burst of 14 -- and the measurement is
+ * pessimistic, because the captures it is drawn from
  * have frame resolution and so concentrate up to eight ticks' work into one.
  */
 #ifndef LPS_SEQ_MAX_EV_PER_TICK

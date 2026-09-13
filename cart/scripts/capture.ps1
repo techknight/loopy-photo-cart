@@ -9,8 +9,8 @@
 # (bios.bin + soundbios.bin).
 #
 # Usage:
-#   ./scripts/capture.ps1 -Rom ..\LoopyPuzzleBobble.bin -Out title.png
-#   ./scripts/capture.ps1 -Rom ..\LoopyPuzzleBobble.bin -Keys "ENTER,ENTER,W:3000,LEFT:900" -Shots 3
+#   cart\scripts\capture.ps1 -Rom cart\build\fixture-demo.bin -Out grid.png
+#   cart\scripts\capture.ps1 -Rom cart\build\fixture-demo.bin -Keys "Z,RIGHT,RIGHT" -Shots 3
 #
 # Keys are comma separated, from: ENTER UP DOWN LEFT RIGHT Z X C V Q W
 # (per the [keyboard-map] in the emulator's loopymse.ini: Enter=Start, Z=A,
@@ -33,8 +33,8 @@ param(
     [int]$ShotIntervalMs = 700,
     # A key to hold *down across the screenshots* and release afterwards.
     # -Keys runs to completion before any shot is taken, so it cannot capture
-    # anything that only exists while a button is held -- a directional sprite,
-    # for instance, or the fact that holding fire stops the player moving.
+    # anything that only exists while a button is held, such as the grid
+    # cursor repeating across a page.
     [string]$HoldKey = "",
     # Shoot the raw VDP raster instead of the window as the user sees it.
     #
@@ -46,10 +46,8 @@ param(
     #
     # -Native runs the emulator with those three off at int_scale = -NativeScale
     # and grabs the *client* rect (no title bar, no invisible Win11 border), so
-    # at the default scale of 1 the PNG is the 280x240 raster pixel for pixel.
-    # The port's 256x224 framebuffer is centred in that raster, so its pixel
-    # (x, y) is PNG (x + 12, y + 8) -- measured twice against SNES captures,
-    # once for the ceiling art and once for the ROUND card.
+    # at the default scale of 1 the PNG is the 280x240 raster pixel for pixel,
+    # with the 256-pixel-wide picture starting 12 pixels in.
     # loopymse.ini is restored afterwards.
     [switch]$Native,
     [int]$NativeScale = 1
@@ -128,8 +126,8 @@ if ($h -eq [IntPtr]::Zero) {
 Start-Sleep -Milliseconds 700
 
 # SDL reads the keyboard from the low-level input queue, which SendKeys does
-# not reach reliably, so synthesise real key events with keybd_event. The game
-# samples the pad once per field, so hold each key long enough to be seen.
+# not reach reliably, so synthesise real key events with keybd_event. Hold
+# each key long enough for the cartridge to see it.
 $vk = @{
     'ENTER' = 0x0D; 'UP' = 0x26; 'DOWN' = 0x28; 'LEFT' = 0x25; 'RIGHT' = 0x27
     'Z' = 0x5A; 'X' = 0x58; 'C' = 0x43; 'V' = 0x56; 'Q' = 0x51; 'W' = 0x57
@@ -159,10 +157,8 @@ if ($Keys -ne "") {
             Write-Output "unknown key: $name"
         }
     }
-    # Settle before shooting. Kept short when a key is being held for the
-    # capture: the game is running the whole time and the player is mortal,
-    # so every idle second is a chance to die and end up back on the title --
-    # which is what a "the input did not register" capture usually really is.
+    # Settle before shooting; kept short when a key is being held for the
+    # capture, so the held key's effect is still on screen.
     if ($HoldKey -ne "") { Start-Sleep -Milliseconds 300 }
     else { Start-Sleep -Seconds 2 }
 }
@@ -177,8 +173,7 @@ if ($HoldKey -ne "") {
         $hext = 0
         if ($holdCode -in 0x25, 0x26, 0x27, 0x28) { $hext = $KEYEVENTF_EXTENDEDKEY }
         [Win32Cap]::keybd_event([byte]$holdCode, [byte]$hscan, [uint32]$hext, [UIntPtr]::Zero)
-        # The pad is sampled once a field, so give it a few fields to register
-        # and for the game to redraw at the new facing.
+        # Give the cartridge a few frames to see the key and redraw.
         Start-Sleep -Milliseconds 500
     } else {
         Write-Output "unknown hold key: $hk"

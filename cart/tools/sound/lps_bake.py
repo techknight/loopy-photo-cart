@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """lps_bake.py -- turn a MIDI file into a song the Loopy can actually play.
 
-    python3 tools/lps_bake.py song.mid song.toml -o src/song_data.h
-    python3 tools/lps_bake.py song.mid song.toml --check-poly --simulate
+    python3 tools/sound/lps_bake.py song.mid song.toml -o src/song_data.h
+    python3 tools/sound/lps_bake.py song.mid song.toml --check-poly --simulate
 
 The gap between a MIDI file and this console is wide: sixteen channels become
 four, a hundred-odd instruments become presets chosen by ear, dynamics vanish
@@ -10,20 +10,19 @@ entirely, and the whole thing has to fit through a 500-byte-per-second pipe. Thi
 does that reduction, and -- more importantly -- **refuses** to do it silently when
 the result will not play.
 
-Two checks are what make it worth having, and neither exists in any previous
-Loopy project:
+Two checks are what make it worth having:
 
   --check-poly   Walks a program timeline per channel and compares the peak
                  simultaneous notes against the real budget, which is not a
                  constant: twelve of the 110 presets are layered and cost double,
                  so channel 2 running one of them is monophonic. The costs come
-                 from tools/programs.json, which is read out of the sound ROM
-                 rather than assumed.
+                 from tools/sound/programs.json, which was read out of the sound
+                 ROM rather than assumed.
 
-  --simulate     Runs the baked events through tools/lps_model.py, the byte-exact
-                 model of the driver, and reports what actually reaches the wire
-                 and what gets dropped. LoopyDOOM's baker had no bandwidth model
-                 at all; its songs fit by luck and by ear.
+  --simulate     Runs the baked events through tools/sound/lps_model.py, the
+                 byte-exact model of the driver, and reports what actually
+                 reaches the wire and what gets dropped -- so a song is checked
+                 against the MIDI link's real bandwidth, not just by ear.
 
 Configuration is TOML:
 
@@ -34,7 +33,7 @@ Configuration is TOML:
     loop = true
     name = "title"
 
-Licence: GPL-2.0-or-later. See LICENSE.
+Licence: GPL-2.0-or-later. See COPYING.md.
 
 The knob set is adapted from LoopyDOOM's tools/bake_music.py
 (GPL-2.0-or-later). See NOTICE.md.
@@ -68,7 +67,7 @@ def load_config(path):
 
 
 def load_programs():
-    """Layered flags and poly caps, read out of the sound ROM by lps_romscan.py."""
+    """Layered flags and poly caps, as read out of the sound ROM."""
     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "programs.json")
     try:
         with open(p, "r", encoding="utf-8") as f:
@@ -355,8 +354,8 @@ def main():
     cfg = load_config(args.config)
     progs = load_programs()
     if progs is None:
-        warn("tools/programs.json not found -- layered presets cannot be costed, "
-             "so the polyphony check is optimistic. Run tools/lps_romscan.py.")
+        warn("tools/sound/programs.json not found -- layered presets cannot be "
+             "costed, so the polyphony check is optimistic.")
 
     events, tpb, fmt = lps_smf.read(args.midi)
     print("%s: format %d, %d ticks/beat, %d events"

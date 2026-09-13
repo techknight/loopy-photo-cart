@@ -41,7 +41,7 @@ void LP_InputPause(void)
 }
 
 // After a print the scan comes back reading an idle image, which would show
-// as buttons held and swallow the next presses (LoopyManiac, on hardware).
+// as buttons held and swallow the next presses (seen on hardware).
 // Re-arming it and clearing every latch avoids both.
 void LP_InputRescan(void)
 {

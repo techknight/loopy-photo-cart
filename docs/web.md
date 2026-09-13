@@ -75,11 +75,12 @@ Actions" with that custom domain in the repository settings, and
 smoke test pass. With an Actions deployment the domain is set in the
 settings, not in a CNAME file.
 
-The build uses a relative base (`./`), so `dist/` works from any path. To
-publish from GitHub Actions, run `npm ci && npm run build` in `web/` and
-upload `web/dist` with `actions/upload-pages-artifact`. Set `BASE_PATH` only
-if absolute URLs are needed. Pages on a private repository requires a paid
-GitHub plan (docs/PLAN.md §8).
+The build uses a relative base (`./`), so `dist/` works from any path,
+including a fork's `https://<user>.github.io/loopy-photo-cart/`. Set
+`BASE_PATH` only if absolute URLs are needed.
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which publishes the
+template, the demo ROMs and a zip of the site as a GitHub release.
 
 ## How photos are processed
 

@@ -10,11 +10,10 @@
  * almost nothing.
  *
  * The design follows what commercial Loopy games actually do, which was recovered
- * by driving seven of them and decoding the MIDI (docs/retail-sfx.md). Three
- * findings shape it:
+ * by driving seven of them and decoding the MIDI. Three findings shape it:
  *
  *   1. **Reserve a channel; never borrow one.** Not one commercial game steals a
- *      music channel. The D1 spike measured why: four music notes destroyed per
+ *      music channel, and measurement shows why: four music notes destroyed per
  *      effect, because a program change silences a whole channel and the restore
  *      costs exactly as much as the steal.
  *
@@ -93,8 +92,7 @@ typedef struct {
  * only for an effect layered deliberately on top of another. */
 #define LPS_SFX_F_CLEAR 0x01
 
-/* The tables a bank provides. tools/lps_sfx.py generates these; a game can also
- * write them by hand. */
+/* The tables a bank provides, written by hand or generated. */
 typedef struct {
 	const lps_sfxnote_t *notes;
 	uint16_t n_notes;

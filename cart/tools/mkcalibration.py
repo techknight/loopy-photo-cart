@@ -7,8 +7,8 @@
 #
 # Build a calibration ROM for the sticker printer.
 #
-# Two test charts, printed and measured, settle what the web app's crop box
-# needs (docs/PLAN.md section 8):
+# Two test charts, printed and measured, give the printed sticker's shape,
+# which the encoders' crop box follows (STICKER_ASPECT in lpcpack.py):
 #
 #   1  LANDSCAPE  the stored 256x224 photo as the printer receives it
 #   2  PORTRAIT   an upright chart stored rotated 90 degrees clockwise, the way

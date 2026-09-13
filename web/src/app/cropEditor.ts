@@ -4,7 +4,7 @@
 // The crop editor: the photo with the sticker-shaped crop box over it. Drag to
 // move the box, scroll or pinch to zoom. The box can never leave the photo.
 
-import { clampCrop, coverSize, cropRect, stickerAspect, type CropState } from "../core/crop.ts";
+import { clampCrop, cropRect, stickerAspect, type CropState } from "../core/crop.ts";
 
 export class CropEditor {
   private readonly canvas: HTMLCanvasElement;
@@ -123,7 +123,6 @@ export class CropEditor {
       const ih = this.workH * s;
       const frame = iw / ih > aspect ? { w: iw, h: iw / aspect } : { w: ih * aspect, h: ih };
       box = { x: ox + (iw - frame.w) / 2, y: oy + (ih - frame.h) / 2, w: frame.w, h: frame.h };
-      void coverSize;
     }
 
     ctx.strokeStyle = "#ff73a5";

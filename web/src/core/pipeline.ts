@@ -6,8 +6,6 @@
 import type { CropState } from "./crop.ts";
 import { renderUpright, thumbnailOf } from "./crop.ts";
 import type { PixelSource, RgbImage } from "./image.ts";
-// Photos: renderUpright gives printer dots (256x224 or 224x256); thumbnails
-// come from the crop at square pixels (thumbnailOf).
 import { rotateClockwise } from "./image.ts";
 import type { PackPhoto } from "./pack.ts";
 import { encodePack, PackError } from "./pack.ts";
@@ -16,7 +14,7 @@ import { MAX_PHOTOS, ORIENT_LANDSCAPE, ORIENT_PORTRAIT, THUMB_H, THUMB_W } from 
 import { quantize } from "./quantize.ts";
 import { buildRom } from "./rompatch.ts";
 
-export const TOOL_NAME = "loopy-photo-cart-web 0.1";
+export const TOOL_NAME = "loopy-photo-cart-web";
 
 export interface RenderedPhoto {
   photo: PackPhoto;

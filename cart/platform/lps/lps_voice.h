@@ -4,21 +4,15 @@
  * Licensed under the GNU General Public License, version 2 or later.
  *
  *
- * This module is much smaller than it was going to be.
+ * Channel ownership is fixed at LPS_Init and never moves: music keeps its
+ * channels and effects play only on theirs. Letting an effect borrow a music
+ * channel was measured to destroy **four music notes per effect**, because a
+ * program change silences a whole channel and restoring it is exactly as
+ * destructive as taking it. Not one of the five commercial Loopy games with sound
+ * effects borrows -- they all reserve a channel.
  *
- * The original design let a sound effect borrow a music channel and hand it back,
- * which needed priority arbitration across all four channels, lazy program
- * restore, and a careful rule about which music note-offs were still valid after
- * a channel had been taken. The D1 spike measured what that costs: **four music
- * notes destroyed per effect**, because a program change silences a whole channel
- * and the restore is exactly as destructive as the steal. Not one of the five
- * commercial Loopy games with sound effects does it -- they all reserve a channel.
- *
- * So channel ownership is fixed at LPS_Init and never moves. What is left is the
- * genuine question: when two effects want the same channel at the same moment,
- * which one plays? That is what this decides.
- *
- * See spike/d1_steal/RESULTS.md for the measurement.
+ * What this module decides is the question that remains: when two effects want
+ * the same channel at the same moment, which one plays?
  */
 
 #ifndef LPS_VOICE_H
@@ -28,8 +22,8 @@
 
 #include "lps_midi.h"
 
-/* Suggested priorities. Any uint8_t works; these are the bands loopy-glider
- * arrived at over thirty effects and they generalise well.
+/* Suggested priorities. Any uint8_t works; these bands have proven out on
+ * hardware across thirty-odd effects and generalise well.
  *
  * Higher wins. **Equal also wins**, which is deliberate: a repeated effect should
  * retrigger cleanly rather than be refused because a copy of itself is still

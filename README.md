@@ -1,11 +1,27 @@
 # Loopy Photo Cart
 
-Turn your photos into a Casio Loopy ROM: browse them as pages of thumbnails or
-full screen, and print any of them on the Loopy's sticker printer.
+Turn your photos into a Casio Loopy cartridge: browse them as pages of
+thumbnails or full screen, and print any of them on the Loopy's sticker
+printer.
 
-Everything runs locally in your browser. Your photos are never uploaded.
+**Make your own at <https://loopyphotocart.com>.** Everything runs in your
+browser. Your photos are never uploaded.
 
-**Make your own cartridge at <https://loopyphotocart.com>.**
+## Making a cartridge
+
+1. Open <https://loopyphotocart.com> and add up to 54 photos.
+2. Adjust each crop if you like. The preview shows exactly what the Loopy
+   will show on screen and print on a sticker.
+3. Pick a format and press **Build ROM**:
+   - **Loopy** for the
+     [Floopy Drive](https://ko-fi.com/partlyhuman/shop) and emulators like
+     LoopyMSE;
+   - **MAME** for a byteswapped ROM, for emulators like MAME.
+
+To try it first, the [latest release](https://github.com/techknight/loopy-photo-cart/releases/latest)
+has a demo ROM of cat photos: `loopy-photo-cart-demo.bin`, and
+`loopy-photo-cart-demo-byteswapped.bin` for MAME. Emulators need the Loopy
+BIOS, which isn't included.
 
 ## On the Loopy
 
@@ -18,35 +34,27 @@ Everything runs locally in your browser. Your photos are never uploaded.
   - Left/Right or L/R step through them.
   - A or Start prints.
   - B goes back to the grid.
+- **Anywhere:** C turns the music on or off, and D shows help.
 - **Stickers:** every photo fills the sticker. Portrait photos print as
   portrait stickers.
-- **Music and help:** Burgmüller's *La Candeur* and Clementi's Sonatina
-  Op. 36 No. 1 play in turn in the background. C pauses the music, and D
-  shows help.
-- **Capacity:** up to 54 photos in a 4 MB ROM, for the Floopy Drive.
-- **Emulators:** the web app can also save the ROM byteswapped for MAME.
+- **Music:** Burgmüller's *La Candeur* and Clementi's Sonatina Op. 36 No. 1
+  play in turn.
 
-## Repository
+## Building from source
+
+- **Web app:** `cd web && npm install && npm run dev`. See
+  [docs/web.md](docs/web.md).
+- **Cartridge program:** C for the Loopy's SH-1, built with the Wonderful
+  Toolchain. See [cart/README.md](cart/README.md).
+- **Demo ROM:** `cd web && npm run demo`.
 
 | Path | What it is |
 |---|---|
-| `cart/` | The Loopy program (C, SH-1). See `cart/README.md` for building and testing. |
-| `web/` | The web app that builds ROMs in the browser (TypeScript) |
+| `cart/` | The cartridge program, and the Python reference tools |
+| `web/` | The web app (TypeScript) |
 | `demo/` | The demo ROM's photos |
-| `docs/PLAN.md` | Architecture, phases and decisions |
+| `docs/web.md` | How the web app is built, tested and deployed |
 | `docs/pack-format.md` | The photo pack format inside a ROM |
-
-## Status
-
-- **Cart:** confirmed on a real Loopy, including printing, sound and the
-  help popover.
-- **Web app:** working. Run `cd web && npm install && npm run dev`; see
-  `docs/web.md`.
-- **Demo ROM:** `cd web && npm run demo` builds it reproducibly.
-- **Hosting:** the web app deploys to <https://loopyphotocart.com> (GitHub
-  Pages) on every push to `main`.
-- **Releases:** pushing a `v*` tag publishes the template, the demo ROM (plus
-  a byteswapped copy for MAME) and the site.
 
 ## Licence
 

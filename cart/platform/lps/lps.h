@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2026 loopy-soundlib contributors
  * Licensed under the GNU General Public License, version 2 or later.
- * See LICENSE.
+ * See COPYING.md.
  *
  *
  * Sound for Casio Loopy homebrew. Include this and nothing else.
@@ -15,8 +15,7 @@
  * The console's synth is reached only by clocking MIDI bytes out SCI1, and it is
  * a strange MIDI device: four channels, binary velocity, one working controller,
  * and a program change that silences whatever the channel was playing. This
- * library's job is to make those constraints someone else's problem. Read
- * docs/hardware.md if you want to know why an API looks the way it does.
+ * library's job is to make those constraints someone else's problem.
  */
 
 #ifndef LPS_H
@@ -37,18 +36,17 @@
 /* Ticks per second for the internal clock, and the rate an externally-driven
  * LPS_Tick is assumed to run at.
  *
- * 500 Hz is the proven number -- loopy-glider and loopy-sopwith both shipped on
- * it. One byte leaves per tick, so this is also the wire budget: 500 bytes/second
- * out of a possible 3125.
+ * 500 Hz is proven on hardware. One byte leaves per tick, so this is also the
+ * wire budget: 500 bytes/second out of a possible 3125.
  *
- * 1000 Hz doubles that, and the D4 spike measured it: exactly 1000 bytes/s,
+ * 1000 Hz doubles that. Under emulation it measured exactly 1000 bytes/s,
  * byte-perfect across a 24,000-byte saturation run, no emulator assertions. It is
  * a supported value -- but the emulator models a byte as 8 bit-times where
  * hardware sends 10, so the real margin is 3.1x rather than the 3.9x observed.
- * That is still comfortable, and it stays opt-in only until a real console
- * confirms it. See spike/d4_rate/RESULTS.md.
+ * That is still comfortable, but it is unverified on a real console, so it is
+ * opt-in.
  *
- * 2 bytes per tick was not tested and should not be enabled: 64% wire occupancy
+ * 2 bytes per tick is untested and should not be enabled: 64% wire occupancy
  * with no jitter margin, on an emulator that flatters it by 25%.
  *
  * There is a hard floor at 500: the transmitter can hold at most two bytes and
@@ -58,7 +56,7 @@
 #define LPS_TICK_HZ 500
 #endif
 #if LPS_TICK_HZ < 500
-#error "LPS_TICK_HZ below 500 cannot sustain a usable byte rate; see docs/hardware.md"
+#error "LPS_TICK_HZ below 500 cannot sustain a usable byte rate"
 #endif
 
 /* Channel modes, matching SOUND_CHANS_*. Polyphony per channel is 6/4/2/4 in
@@ -79,8 +77,8 @@ typedef enum {
  * ships a music volume slider has built something that cannot work.
  *
  * Channel 2 is worth a note of its own. It has two voices -- one, on a layered
- * preset -- and Casio's own games barely use it (0.1% of events across the eight
- * retail titles sampled in docs/instruments.md). It is a poor place for a melody
+ * preset -- and Casio's own games barely use it (0.1% of events across eight
+ * retail titles sampled). It is a poor place for a melody
  * and a good place for a single effect that must never be interrupted.
  */
 typedef enum {

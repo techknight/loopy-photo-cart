@@ -160,29 +160,22 @@ int LPS_SfxPlay(uint16_t id)
 	if (!LPS_VoiceClaim(chans, g->priority, hold_ms))
 		return 0; /* lps_voice counts this refusal itself */
 
-	/* Clear each channel before use.
+	/* Clear each channel before use, and select its timbre in the same two
+	 * bytes.
 	 *
-	 * This has to be a program change, not LPS_SilenceChannel, and the reason
-	 * is the whole justification for the flag existing. A note-off names one
-	 * note, and the synth's note-off stops at the FIRST voice matching that
-	 * pitch -- so on a channel where LPS_SFXOP_LAYER struck a note twice, a
-	 * release silences one copy and strands the other permanently.
+	 * This has to be a program change, not LPS_SilenceChannel. A note-off
+	 * names one note, and the synth's note-off stops at the FIRST voice
+	 * matching that pitch -- so on a channel where LPS_SFXOP_LAYER struck a
+	 * note twice, a release silences one copy and strands the other
+	 * permanently. A program change kills every voice on the channel, layered
+	 * copies included, which is why retail games can double notes freely and
+	 * never send a note-off at all.
 	 *
-	 * A program change kills every voice on the channel, layered copies
-	 * included. Program 0x7F is above the patch range, so the synth runs its
-	 * silencing loop and then rejects the program, leaving the instrument
-	 * untouched: two bytes to reset the channel to nothing sounding.
-	 *
-	 * The retail games reach for exactly this, which is why they can double
-	 * notes freely and never send a note-off at all (docs/retail-sfx.md).
-	 */
-	/* The clear and the timbre select are the same two bytes.
-	 *
-	 * Re-sending a program does both jobs at once, which is why the retail
-	 * games spend two bytes an effect where the obvious implementation spends
-	 * four. LPS_ProgramForce is the entry point that skips the redundancy
-	 * suppression LPS_Program applies, because here the "redundant" silence is
-	 * precisely what is wanted.
+	 * Re-sending a program clears and selects at once, so an effect costs two
+	 * bytes where the obvious implementation spends four. LPS_ProgramForce
+	 * skips the redundancy suppression LPS_Program applies, because here the
+	 * "redundant" silence is precisely what is wanted. With no program to
+	 * select, LPS_SFX_F_CLEAR sends 0x7F instead (see below).
 	 *
 	 * Slots are indexed the way the notes are -- slot 0 is the gesture's first
 	 * channel, not hardware channel 0. Indexing by hardware channel would tie a
@@ -300,7 +293,7 @@ void LPS_SfxTick(uint16_t elapsed_ms)
 		 *
 		 * Field by field rather than a struct assignment, which gcc
 		 * compiles to a memcpy at -Os. The library links into ROMs built
-		 * -nolibc, so there is no memcpy to call -- and the host build
+		 * -nolibc, so there is no memcpy to call -- and a desktop build
 		 * links a C library, so only the cross build catches it. */
 		{
 			pending_t *src = &pending[--n_pending];

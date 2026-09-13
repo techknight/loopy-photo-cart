@@ -41,7 +41,7 @@
  * second before the last one reaches the synth.
  *
  * 64 is measured, not guessed. Replaying eleven MIDI streams captured from
- * commercial Loopy games (spike/d3_soak/RESULTS.md) puts the worst high-water at
+ * commercial Loopy games puts the worst high-water at
  * 33 of the 63 usable bytes -- comfortable margin, nothing wasted. Below this it
  * degrades in order: 32 starts dropping note-ons and the song plays with gaps; 16
  * starts dropping note-OFFS, and a lost note-off on this synth is a note that
@@ -71,8 +71,8 @@ void LPS_MidiInit(void);
 /* Bytes that can still be queued. */
 int LPS_MidiFree(void);
 
-/* High-water mark of queue occupancy since init -- what D3 sizes the queue from,
- * and what a game can assert on in its own soak test. */
+/* High-water mark of queue occupancy since init -- what LPS_QUEUE_SIZE was sized
+ * from, and what a game can assert on in its own soak test. */
 uint8_t LPS_MidiHighWater(void);
 
 /* Messages dropped for want of space, by kind. A nonzero note-off count is a bug
@@ -96,8 +96,7 @@ int LPS_Program(uint8_t ch, uint8_t prog);
  * That case is a sound-effect channel. Re-sending the program does two jobs at
  * once for two bytes: it stops whatever the last effect left sounding (including
  * a layered copy that no note-off could reach) and it selects the timbre for the
- * next one. Every commercial Loopy game surveyed uses this as its note-off; see
- * docs/retail-sfx.md.
+ * next one. Every commercial Loopy game surveyed uses this as its note-off.
  *
  * Never call this on a music channel. It will cut the arrangement off mid-phrase.
  */
@@ -109,8 +108,8 @@ int LPS_ProgramForce(uint8_t ch, uint8_t prog);
  * also a technique. Two voice pairs playing the same sample at once is roughly
  * twice the amplitude, and on a synth with binary velocity and no volume
  * controller that is one of the very few ways to make one sound louder than
- * another. Commercial Loopy games use it constantly: 39% of the sound effects
- * surveyed in docs/retail-sfx.md are a note struck twice.
+ * another. Commercial Loopy games use it constantly: 39% of the retail sound
+ * effects surveyed are a note struck twice.
  *
  * The catch is real and unavoidable. The synth's note-off stops at the first
  * voice matching the pitch, so the second copy can never be released by note
@@ -128,7 +127,7 @@ int LPS_ProgramForce(uint8_t ch, uint8_t prog);
 int LPS_NoteOnLayered(uint8_t ch, uint8_t note);
 
 /* Bend in cents, clamped to the synth's real range of +/-200 (measured from the
- * sound ROM's rate table; see docs/instruments.md). Resolution is 7 bits, about
+ * sound ROM's rate table). Resolution is 7 bits, about
  * 3 cents -- the synth discards the low data byte. Under running status a repeat
  * bend costs 2 bytes, the same as a note, which is what makes sweeps affordable.
  */

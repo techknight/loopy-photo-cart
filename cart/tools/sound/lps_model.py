@@ -14,12 +14,12 @@ same free-space thresholds, the same running-status rule, the same duplicate-not
 handling, the same bitmap-clear on a program change. Where the C is awkward, this
 is awkward in the same way on purpose.
 
-That is only a promise until something checks it. test/run_tests.sh runs the same
-input through this and through the real driver's host build and requires the two
-wire logs to be **byte identical, timestamps included**. A difference is a build
-failure, which is the only thing that keeps the two from quietly diverging.
+The check is a byte diff: the same input run through this and through the C
+driver built for the desktop (LPS_HOST) must give wire logs that are **byte
+identical, timestamps included**. Any change to the C driver needs the matching
+change here, or the two quietly diverge.
 
-Licence: GPL-2.0-or-later. See LICENSE.
+Licence: GPL-2.0-or-later. See COPYING.md.
 """
 
 # --- lps_midi.c ------------------------------------------------------------
@@ -91,7 +91,7 @@ class Midi:
             self.dropped_on += 1
             return 0
         # The duplicate-note rule: release first, or the second copy can never
-        # be turned off. See lps_midi.c and docs/hardware.md.
+        # be turned off. See lps_midi.c.
         if note in self.sounding[ch]:
             self._emit_off(ch, note)
         self._status(0x90 | ch)
@@ -374,19 +374,19 @@ class Driver:
         self.millis = 0
 
     def tick(self, now_ms, elapsed_ms):
-        """`now_ms` is the harness's virtual clock, which is what stamps a byte.
+        """`now_ms` is the caller's virtual clock, which is what stamps a byte.
 
-        Not the same as the library's own millisecond counter: the harness calls
+        Not the same as the library's own millisecond counter: the caller runs
         LPS_Tick at now_ms and the counter has already advanced by a full period
         by the time a byte goes out. Timestamping with the wrong one puts every
-        byte one tick early and makes the drift diff fail for a reason that has
-        nothing to do with drift."""
+        byte one tick early and makes the byte diff fail for a reason that has
+        nothing to do with the driver."""
         self.millis += elapsed_ms
         self.seq.tick(elapsed_ms)
         self.midi.tx_tick(now_ms)
 
     def wirelog(self):
-        """The same format host/lpshost_log.c writes, so the two can be diffed."""
+        """One "t_ms hex" line per byte, for diffing against the C driver."""
         out = ["# t_ms hex -- MIDI bytes as the console would have sent them"]
         out += ["%u %02X" % (t, b) for t, b in self.wire]
         return "\n".join(out) + "\n"

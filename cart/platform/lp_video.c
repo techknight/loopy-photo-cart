@@ -50,7 +50,7 @@
 
 // With BG_CTRL = 0 the tilemaps take the first 0x4000 bytes of tile VRAM
 // (two 64x64 maps), so char data starts at word 0x2000 (LoopyMSE render.cpp
-// get_tilemap_info; the same constant LoopyManiac's cursor uses on hardware).
+// get_tilemap_info; confirmed on hardware).
 #define CHAR_DATA_W  0x2000u
 #define TILE_VRAM_W  0x8000u
 

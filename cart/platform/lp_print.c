@@ -12,15 +12,15 @@
 // The sticker printer, through the boot BIOS.
 //
 // Adapted from LoopyDOOM's platform/loopy_print.c (ThroatyMumbo,
-// GPL-2.0-or-later, https://github.com/ThroatyMumbo/LoopyDOOM), by way of the
-// same author's LoopyManiac, where this sequence and its recovery steps were
-// proven on hardware. See NOTICE.md.
+// GPL-2.0-or-later, https://github.com/ThroatyMumbo/LoopyDOOM). The sequence
+// and its recovery steps are proven on hardware. See NOTICE.md.
 //
 // The BIOS owns the head, the motor and the sensors; the cartridge's whole job
 // is to hand bios_print8bpp a 256-strided 8bpp buffer plus an RGB555 palette
 // in console RAM and drive its polled state machine until it settles. LoopyMSE
 // hooks the same BIOS entry point and writes a PNG, so the path is testable
-// without paper (its PNG stops at 224 lines; hardware prints all 241).
+// without paper. Its PNG stops at 224 lines, which matches the sticker: the
+// buffer is 241 lines, but only the first 224 reach the paper.
 //
 
 #include <string.h>
@@ -103,8 +103,8 @@ int LP_PrintSticker(const uint8_t *pixels, const uint16_t *palette)
 		}
 	}
 
-	// A print disturbs more than the IO expansion: LoopyManiac saw it stop
-	// a timer, and re-arming the scan with bios_vdpMode() reprograms the
+	// A print disturbs more than the IO expansion: on hardware it stops a
+	// timer, and re-arming the scan with bios_vdpMode() reprograms the
 	// VDP. Put all of it back.
 	LP_ClockRearm();
 	LP_InputRescan();

@@ -1,7 +1,8 @@
 # Loopy Photo Cart -- the cartridge program
 #
 # Builds build/loopy-photo-cart-template.bin: the photo viewer with no photos
-# in it. The web app appends a photo pack at PACK_OFFSET (docs/PLAN.md).
+# in it. The web app appends a photo pack at PACK_OFFSET
+# (docs/pack-format.md).
 #
 # Layout follows Kasami's loopy-homebrew-template (zlib; see
 # LICENSE-loopy-template.txt): boot/ is the SH-1 startup and vector table,

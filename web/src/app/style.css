@@ -314,13 +314,6 @@ a:focus-visible {
   align-items: center;
 }
 
-.check {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  color: var(--grey);
-}
-
 .hint {
   margin: 0;
   font-size: 13px;

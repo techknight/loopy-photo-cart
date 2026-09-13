@@ -32,7 +32,7 @@ function channel(key: number, axis: number): number {
   return (key >> (10 - axis * 5)) & 31;
 }
 
-function boxRange(box: Box, hist: Uint32Array): { axis: number; range: number } {
+function boxRange(box: Box): { axis: number; range: number } {
   let best = { axis: 0, range: -1 };
   for (let axis = 0; axis < 3; axis++) {
     let lo = 31;
@@ -44,7 +44,6 @@ function boxRange(box: Box, hist: Uint32Array): { axis: number; range: number } 
     }
     if (hi - lo > best.range) best = { axis, range: hi - lo };
   }
-  void hist;
   return best;
 }
 
@@ -69,7 +68,7 @@ function medianCut(hist: Uint32Array, maxColours: number): number[] {
     for (let i = 0; i < boxes.length; i++) {
       const b = boxes[i]!;
       if (b.keys.length < 2) continue;
-      const { axis, range } = boxRange(b, hist);
+      const { axis, range } = boxRange(b);
       const score = b.count * (range + 1);
       if (score > pickScore) {
         pick = i;

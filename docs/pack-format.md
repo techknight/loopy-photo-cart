@@ -213,5 +213,5 @@ If any check fails, the cart shows the no-photos screen with the reason.
 ## Size budget
 
 A 54-photo pack with print palettes and 6 grid pages takes 3,500,544 bytes of
-images plus under 4 KB of tables. That fits below the 4 MB limit with the
-256 KB code region (`docs/PLAN.md` §8).
+images plus under 4 KB of tables. That fits below the 4 MB limit, after the
+256 KB code region.

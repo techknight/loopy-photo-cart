@@ -4,10 +4,10 @@
  * Licensed under the GNU General Public License, version 2 or later.
  *
  *
- * This is the one file in lps/ that compiles to nothing on the host. There is no
- * desktop equivalent of a hardware timer, and a simulated one would only be
- * testing itself -- the harness drives LPS_Tick directly instead, which is the
- * same thing this interrupt does.
+ * This is the one file in lps/ that compiles to nothing on the desktop (LPS_HOST).
+ * There is no desktop equivalent of a hardware timer, and a simulated one would
+ * only be testing itself -- a desktop program calls LPS_Tick directly instead,
+ * which is the same thing this interrupt does.
  *
  *
  * What LoopyMSE cannot do, which shapes every line below
@@ -128,13 +128,13 @@ LPS_ISR void LPS_ClockISR(void)
 
 #else /* LPS_HOST */
 
-/* On the host the harness IS the clock -- it advances a counter and calls
- * LPS_Tick itself, which is exactly what the interrupt above does.
+/* On the desktop the calling program IS the clock -- it advances a counter and
+ * calls LPS_Tick itself, which is exactly what the interrupt above does.
  *
  * These stubs exist so that lps.c can call the clock unconditionally and stay
- * free of preprocessor conditionals. They are never reached: the harness forces
- * use_internal_clock to 0. Should that change, doing nothing is still correct --
- * the harness would keep ticking regardless.
+ * free of preprocessor conditionals. With use_internal_clock = 0 they are never
+ * reached, and if they are, doing nothing is still correct -- the caller keeps
+ * ticking regardless.
  */
 
 void LPS_ClockInit(void)

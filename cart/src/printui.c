@@ -43,7 +43,7 @@
 #define TITLE_ONLY_Y (BOX_Y + (BOX_H - LPC_LARGE_HEIGHT) / 2)
 
 // A result shows this long and then goes by itself. It takes no input: asking
-// for a press after a print only invites a mis-press (hardware feedback).
+// for a press after a print only invites a mis-press.
 #define RESULT_FRAMES 150
 
 #define ANY_KEY (GAMEPAD_BTN_A | GAMEPAD_BTN_B | GAMEPAD_BTN_START)

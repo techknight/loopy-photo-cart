@@ -8,8 +8,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //
 //
-// Sound backend: thin glue over the sound driver in platform/lps, set up the
-// way LoopyPuzzleBobble runs it on hardware.
+// Sound backend: thin glue over the sound driver in platform/lps.
 //
 // The driver owns the synth (channel plan, MIDI queue, sequencer, effects);
 // this file brings it up, feeds it time from our ITU1 tick
@@ -58,7 +57,7 @@ static const lps_song_t *const playlist[] = {
 #define EFFECT_CHANNELS 0x04
 
 // Program 10: its high notes are short clicks, the timbre retail Loopy games
-// use for menu sounds (loopy-soundlib docs/retail-sfx.md).
+// use for menu sounds.
 #define PROGRAM_CLICK 10
 
 static const lps_sfxnote_t sfx_notes[] = {

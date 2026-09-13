@@ -19,9 +19,8 @@ it.
 | Gymnopédie No. 1 | `lps_song_gymnopedie` | 141 s | 282 | 2.3 KB | ch0 5/6, ch1 4/4, ch3 1/4 | 9 bytes/s, high-water 30/63, no drops |
 
 **The cart plays La Candeur, then Clementi, then repeats**
-(`cart/platform/lp_sound.c`), with a short breath between songs. This
-replaced Gymnopédie after the hardware test asked for something upbeat and
-subtle. Those two are baked without looping (`loop = false` in their TOML) so
+(`cart/platform/lp_sound.c`), with a short breath between songs. Those two
+are baked without looping (`loop = false` in their TOML) so
 the playlist can move on. The others still loop and stay for auditioning:
 build with `EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE`, `-DLPC_MUSIC_CLEMENTI` or
 `-DLPC_MUSIC_GYMNOPEDIE` to hear one song on its own.

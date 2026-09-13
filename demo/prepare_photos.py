@@ -9,7 +9,7 @@ For every JPEG/PNG in SRC this writes DST/<same name>.jpg that is:
 
 Each output is re-read and checked for leftover metadata; any hit is fatal.
 
-Usage: python demo/prepare_photos.py sample-photos demo/photos [--long-edge 1600]
+Usage: python demo/prepare_photos.py originals/ demo/photos [--long-edge 1600]
 """
 
 import argparse

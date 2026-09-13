@@ -18,12 +18,12 @@ publish it (`.github/workflows/release.yml`).
 
 ## Updating the photos
 
-The full-size originals live in `../sample-photos/`. That folder is
-git-ignored because the originals are large and carry phone metadata.
-Regenerate the committed copies with:
+The committed photos were made from full-size originals, which aren't in the
+repository because they're large and carry phone metadata. To prepare your
+own photos the same way:
 
 ```
-python demo/prepare_photos.py sample-photos demo/photos
+python demo/prepare_photos.py originals/ demo/photos
 ```
 
 The script:

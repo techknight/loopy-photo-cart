@@ -38,8 +38,8 @@
 #error "TICK_COUNTS does not fit in GRA1"
 #endif
 
-// Sample the pad on every fifth 2 ms tick: 100 Hz, the rate the sibling
-// ports' input was validated at on hardware.
+// Sample the pad on every fifth 2 ms tick: 100 Hz, a rate proven on
+// hardware.
 #define PAD_DIV      5
 
 #define ITU1_START   0x02 // TSTR bit 1

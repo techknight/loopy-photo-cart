@@ -17,9 +17,8 @@
  *     destructive
  *   - dropping note-ons before note-offs when the queue backs up
  *
- * Retail Loopy games use running status too -- five of the eight sampled in
- * docs/instruments.md, one of them for 88% of its messages -- so it is proven on
- * this synth and not just on paper.
+ * Retail Loopy games use running status too -- five of eight sampled, one of them
+ * for 88% of its messages -- so it is proven on this synth and not just on paper.
  *
  *
  * Concurrency
@@ -28,7 +27,7 @@
  * queue_head; the tick only ever advances queue_tail. Both are volatile uint8_t,
  * so each update is a single byte store and an interrupt taken between
  * instructions can never see a half-written index. That is why there is no
- * masking here, and it is the same argument loopy-glider ships on.
+ * masking here, and the argument has held up on hardware.
  *
  * The state that is NOT protected by that argument -- running_status, the
  * sounding bitmaps, cur_prog -- is touched only by the emitters, never by the
@@ -58,7 +57,7 @@
 #define QMASK (LPS_QUEUE_SIZE - 1)
 
 /* Programs at or above this are not patches. Sending one silences the channel and
- * leaves the instrument alone -- see docs/hardware.md. */
+ * leaves the instrument alone. */
 #define PROG_ALL_OFF 0x7F
 
 static uint8_t queue[LPS_QUEUE_SIZE];

@@ -8,7 +8,7 @@ and no controllers. Everything else is skipped rather than modelled.
 No third-party library, because a build tool that needs `pip install` before a ROM
 can be built is a build tool that will eventually stop working for someone.
 
-Licence: GPL-2.0-or-later. See LICENSE.
+Licence: GPL-2.0-or-later. See COPYING.md.
 """
 
 import struct

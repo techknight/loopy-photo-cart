@@ -1,4 +1,5 @@
-# Satie, Gymnopedie No. 1 -- the background music.
+# Satie, Gymnopedie No. 1 -- an alternative song for auditioning; the cart
+# plays La Candeur, then Clementi (platform/lp_sound.c).
 #
 # Source MIDI channels after tools/sound/split_voices.py:
 #   0  right hand                 -> console channel 0 (six voices)
@@ -7,8 +8,7 @@
 # Console channel 2 is left to the sound effects.
 #
 # Program 1 is the ROM's piano-like preset (not layered, so the full voice
-# budget applies). Chosen by the provisional instrument notes, not by ear; a
-# listen on hardware may pick better.
+# budget applies).
 
 name = "gymnopedie"
 loop = true

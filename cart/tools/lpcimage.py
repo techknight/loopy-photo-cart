@@ -7,9 +7,8 @@
 # Photo conversion for the fixture tools: crop to the sticker's shape,
 # resample to 256x224 printer dots, quantize to RGB555 around the reserved
 # slots, and render
-# the 3x3 grid pages. This is a stand-in for the web app's pipeline
-# (docs/PLAN.md, Phase 4), good enough to put real photos on the cart for
-# testing. Requires Pillow.
+# the 3x3 grid pages. A simpler version of the web app's pipeline, good
+# enough to put real photos on the cart for testing. Requires Pillow.
 
 import os
 
@@ -50,8 +49,8 @@ HEADER_TITLE = "PHOTOS"
 # x = 88) and the page counter (which starts at x = 204 for "6/6").
 CONTROLS_X = 100
 CONTROLS_YS = (13, 22)
-# Public Pixel has real lowercase, so the hints are mixed case. L/R paging
-# is left to the help popover D opens (docs/PLAN.md, Phase 5).
+# Public Pixel has real lowercase, so the hints are mixed case. The other
+# controls, such as L/R paging, are on the help popover D opens.
 CONTROLS = ("A: View", "D: Show Help")
 
 UI_BLACK, UI_BG, UI_PANEL, UI_DIM, UI_GREY, UI_WHITE, UI_ACCENT, UI_HIGHLIGHT = range(248, 256)
