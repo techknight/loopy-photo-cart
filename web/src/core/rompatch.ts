@@ -11,11 +11,13 @@ import { readDescriptor, TemplateError } from "./descriptor.ts";
 
 export class PackTooLargeError extends Error {
   override name = "PackTooLargeError";
-  constructor(
-    readonly romBytes: number,
-    readonly limitBytes: number,
-  ) {
+  readonly romBytes: number;
+  readonly limitBytes: number;
+
+  constructor(romBytes: number, limitBytes: number) {
     super(`The ROM would be ${romBytes} bytes, but the cartridge holds ${limitBytes}.`);
+    this.romBytes = romBytes;
+    this.limitBytes = limitBytes;
   }
 }
 

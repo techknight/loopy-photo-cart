@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--CSP-->
+    <meta name="referrer" content="no-referrer" />
+    <title>Loopy Photo Cart</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header class="top">
+      <h1>Loopy Photo Cart</h1>
+      <p class="tagline">Turn your photos into a Casio Loopy cartridge you can browse and print as stickers.</p>
+      <p class="privacy"><strong>Private by design:</strong> your photos never leave your computer. Everything happens here in your browser.</p>
+    </header>
+
+    <main class="layout">
+      <section class="panel photos" aria-labelledby="photos-title">
+        <div class="panel-head">
+          <h2 id="photos-title">Photos</h2>
+          <span id="count" class="count">0 / 54</span>
+        </div>
+        <label id="drop" class="drop">
+          <input id="file" type="file" accept="image/*,.heic,.heif" multiple hidden />
+          <span>Drop photos here, or <u>choose files</u></span>
+        </label>
+        <ol id="list" class="list"></ol>
+      </section>
+
+      <section class="panel crop" aria-labelledby="crop-title">
+        <div class="panel-head">
+          <h2 id="crop-title">Crop</h2>
+          <span id="kept" class="kept"></span>
+        </div>
+        <div class="stage">
+          <canvas id="editor" width="640" height="480"></canvas>
+          <p id="editor-empty" class="empty">Add photos, then pick one to adjust its crop.</p>
+        </div>
+        <div class="tools">
+          <div class="seg" role="group" aria-label="Sticker shape">
+            <button id="landscape">Landscape</button><button id="portrait">Portrait</button>
+          </div>
+          <div class="seg" role="group" aria-label="Framing">
+            <button id="fill">Fill sticker</button><button id="fit">Whole photo</button>
+          </div>
+          <button id="reset">Reset</button>
+          <label class="check"><input id="dither" type="checkbox" checked /> Dither</label>
+        </div>
+        <p class="hint">Drag to move the crop. Scroll or pinch to zoom.</p>
+      </section>
+
+      <section class="panel preview" aria-labelledby="preview-title">
+        <div class="panel-head">
+          <h2 id="preview-title">On the Loopy</h2>
+          <div class="seg" role="group" aria-label="Preview">
+            <button id="tab-tv">TV</button><button id="tab-sticker">Sticker</button><button id="tab-grid">Grid</button>
+          </div>
+        </div>
+        <div class="screen"><canvas id="preview" width="256" height="240"></canvas></div>
+        <div id="grid-nav" class="grid-nav" hidden>
+          <button id="grid-prev" aria-label="Previous page">‹</button>
+          <span id="grid-label">No pages yet</span>
+          <button id="grid-next" aria-label="Next page">›</button>
+        </div>
+        <p class="hint">Exactly the colours and pixels that go into the cartridge.</p>
+      </section>
+    </main>
+
+    <div class="bar">
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <button id="build" class="primary" disabled>Build ROM</button>
+    </div>
+
+    <footer class="credits">
+      <p>
+        Loopy Photo Cart is free software under the
+        <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html">GNU GPL, version 2 or later</a>.
+        Source: <a href="https://github.com/techknight/loopy-photo-cart">github.com/techknight/loopy-photo-cart</a>.
+      </p>
+      <p>
+        Fonts by GGBotNet, dedicated to the public domain (CC0):
+        <a href="https://ggbot.itch.io/home-video-font">Home Video Font</a> and
+        <a href="https://ggbot.itch.io/public-pixel-font">Public Pixel Font</a>.
+        Casio Loopy is a trademark of Casio Computer Co., Ltd. This project is not affiliated with Casio.
+      </p>
+    </footer>
+
+    <script type="module" src="./src/app/main.ts"></script>
+  </body>
+</html>
