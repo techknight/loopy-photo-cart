@@ -1,5 +1,29 @@
 # Hardware test session
 
+## Results, 2026-09-13
+
+- **Printing:** landscape stickers look good. Portrait photos print rotated
+  to the right, as designed. No cassette gives "NO CASSETTE" and no print. A
+  temporary sticker jam was reported and recovered. Controls and music carry
+  on perfectly after a print. Cancelling mid-print isn't supported by the
+  console.
+- **Changes from feedback:**
+  - the print result now disappears by itself, with no "A: OK" to invite a
+    mis-press;
+  - L/R in the viewer make the d-pad sound;
+  - the music changes to something upbeat and subtle.
+- **Sticker shape:**
+  - only 224 of the 241 lines print (bottom border missing);
+  - dots measure 0.160 × 0.1425 mm, so the circle came out wide on the
+    sticker but round on the TV.
+
+  Photos are now 256×224 dots, cropped to the printed 1.283 : 1 shape and
+  letterboxed on the TV (`docs/PLAN.md` §8).
+- **Sound:** music and effects implemented flawlessly.
+- **Screen:** everything is great.
+
+The checklist below is kept for future sessions.
+
 Everything below has been checked in LoopyMSE. These are the things only a
 real Loopy, Floopy Drive and sticker cassette can confirm. Stickers cost
 money, so the printing tests are batched into one sitting.

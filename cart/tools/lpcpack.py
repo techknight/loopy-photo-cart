@@ -31,8 +31,19 @@ PHOTO_SIZE = 28
 PAGE_SIZE = 60
 
 IMAGE_W = 256
-IMAGE_H = 240
+# Photos are stored at the printer's resolution: the sticker shows 256 dots by
+# 224 lines (measured on hardware). Grid pages are screen images, 256x240.
+PHOTO_H = 224
+PAGE_H = 240
+IMAGE_H = PAGE_H  # the screen height; kept for tools that draw pages
 PALETTE_SIZE = 256
+
+# Printer dot size in mm, measured on an XS-11 sticker: 200 dots across were
+# 32 mm and 200 lines down were 28.5 mm.
+DOT_W_MM = 0.160
+DOT_H_MM = 0.1425
+# The printed shape of a photo, width / height (about 1.283).
+STICKER_ASPECT = (IMAGE_W * DOT_W_MM) / (PHOTO_H * DOT_H_MM)
 
 MAX_PHOTOS = 54
 GRID_COLS = 3
@@ -76,7 +87,7 @@ def align4(n):
 @dataclass
 class Image:
     palette: list    # 256 RGB555 values; slot 0 black, 248..255 UI_PALETTE
-    pixels: bytes    # IMAGE_W * IMAGE_H palette indices, row 0 at the top
+    pixels: bytes    # IMAGE_W * (PHOTO_H or PAGE_H) indices, row 0 at the top
 
 
 @dataclass
@@ -108,10 +119,10 @@ def _check_palette(palette, what):
         raise PackError(f"{what}: slots 248-255 must be the reserved UI colours")
 
 
-def _check_image(image, what):
+def _check_image(image, what, height):
     _check_palette(image.palette, what)
-    if len(image.pixels) != IMAGE_W * IMAGE_H:
-        raise PackError(f"{what}: {len(image.pixels)} pixels, not {IMAGE_W * IMAGE_H}")
+    if len(image.pixels) != IMAGE_W * height:
+        raise PackError(f"{what}: {len(image.pixels)} pixels, not {IMAGE_W * height}")
 
 
 def encode_pack(photos, pages=(), meta=None):
@@ -125,13 +136,13 @@ def encode_pack(photos, pages=(), meta=None):
     if pages and len(pages) != -(-len(photos) // CELLS_PER_PAGE):
         raise PackError("page count must be 0 or ceil(photos / 9)")
     for i, p in enumerate(photos):
-        _check_image(p.image, f"photo {i}")
+        _check_image(p.image, f"photo {i}", PHOTO_H)
         if p.orientation not in (ORIENT_LANDSCAPE, ORIENT_PORTRAIT):
             raise PackError(f"photo {i}: bad orientation {p.orientation}")
         if p.print_palette is not None:
             _check_palette(p.print_palette, f"photo {i} print palette")
     for i, pg in enumerate(pages):
-        _check_image(pg.image, f"page {i}")
+        _check_image(pg.image, f"page {i}", PAGE_H)
         expected = min(CELLS_PER_PAGE, len(photos) - i * CELLS_PER_PAGE)
         if pg.first_photo != i * CELLS_PER_PAGE or len(pg.cells) != expected:
             raise PackError(f"page {i}: must hold photos {i * CELLS_PER_PAGE}.. in {expected} cells")
@@ -164,19 +175,19 @@ def encode_pack(photos, pages=(), meta=None):
     def put_palette(palette):
         return put(struct.pack(">256H", *palette))
 
-    def put_image(image):
+    def put_image(image, height):
         palette_off = put_palette(image.palette)
         pixels_off = put(image.pixels)
-        return struct.pack(">HHBBHIII", IMAGE_W, IMAGE_H, 0, 0, 0,
+        return struct.pack(">HHBBHIII", IMAGE_W, height, 0, 0, 0,
                            palette_off, pixels_off, len(image.pixels))
 
     tables = bytearray()
     for p in photos:
-        ref = put_image(p.image)
+        ref = put_image(p.image, PHOTO_H)
         print_off = put_palette(p.print_palette) if p.print_palette is not None else 0
         tables += ref + struct.pack(">IBBH", print_off, p.orientation, 0, 0)
     for pg in pages:
-        ref = put_image(pg.image)
+        ref = put_image(pg.image, PAGE_H)
         cells = list(pg.cells) + [(0, 0, 0, 0)] * (CELLS_PER_PAGE - len(pg.cells))
         tables += ref + struct.pack(">HBB", pg.first_photo, len(pg.cells), 0)
         for c in cells:

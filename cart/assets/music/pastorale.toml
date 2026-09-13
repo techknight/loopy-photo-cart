@@ -1,0 +1,15 @@
+# Burgmuller, La Pastorale (Op. 100 No. 3) -- gentle and lilting.
+#
+# Source MIDI channels:
+#   0  right hand (peak 1 note)   -> console channel 0 (six voices)
+#   1  left hand  (peak 4 notes)  -> console channel 1 (four voices)
+# Console channel 2 is left to the sound effects; channel 3 is unused.
+#
+# Program 1 is the ROM's piano-like preset (not layered).
+
+name = "pastorale"
+loop = true
+
+[chan_map]
+0 = [0, 1]
+1 = [1, 1]

@@ -1,0 +1,16 @@
+# Clementi, Sonatina Op. 36 No. 1, first movement (Allegro) -- bright and
+# cheerful.
+#
+# Source MIDI channels:
+#   0  right hand (peak 2 notes)  -> console channel 0 (six voices)
+#   1  left hand  (peak 1 note)   -> console channel 1 (four voices)
+# Console channel 2 is left to the sound effects; channel 3 is unused.
+#
+# Program 1 is the ROM's piano-like preset (not layered).
+
+name = "clementi"
+loop = true
+
+[chan_map]
+0 = [0, 1]
+1 = [1, 1]

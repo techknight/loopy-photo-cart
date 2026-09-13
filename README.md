@@ -18,7 +18,7 @@ Everything runs locally in your browser. Your photos are never uploaded.
   - B goes back to the grid.
 - **Stickers:** every photo fills the sticker. Portrait photos print as
   portrait stickers.
-- **Music and help:** Satie's *Gymnopédie No. 1* plays in the background.
+- **Music and help:** Burgmüller's *La Candeur* plays in the background.
   C pauses it, and D shows help.
 - **Capacity:** up to 54 photos in a 4 MB ROM, for the Floopy Drive.
 

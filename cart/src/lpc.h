@@ -48,9 +48,20 @@
 #define LPC_GRID_COLS  3
 #define LPC_GRID_ROWS  3
 #define LPC_IMAGE_W    256
-#define LPC_IMAGE_H    240
+// A photo is stored at the printer's own resolution: the sticker shows 256
+// dots by 224 lines (measured on hardware; the BIOS buffer is 241 lines but
+// the rest is cut off). A grid page is a screen image, 256x240.
+#define LPC_PHOTO_H    224
+#define LPC_PAGE_H     240
 #define LPC_THUMB_W    64
 #define LPC_THUMB_H    60
+
+// A printer dot is 0.160 mm wide and 0.1425 mm tall, so a stored photo is
+// 1.283 times as wide as tall on the sticker. The TV's pixels are square, so
+// the viewer shows that shape as 256x200 (landscape, letterboxed) or 187x240
+// (portrait, pillarboxed).
+#define LPC_TV_LANDSCAPE_H 200
+#define LPC_TV_PORTRAIT_W  187
 
 #define LPC_ORIENT_LANDSCAPE 0
 #define LPC_ORIENT_PORTRAIT  1  // stored rotated 90 degrees clockwise

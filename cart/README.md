@@ -81,6 +81,7 @@ Test switches, set with `cart\scripts\build.ps1 EXTRA_CFLAGS=...`:
 | `-DLPC_OSD_FRAMES=100000` | Keep the viewer's photo counter on screen |
 | `-DLPC_TEST_AUTOPRINT=n` | Print photo n without asking, shortly after boot. LoopyMSE writes the sticker as a PNG in its working folder. |
 | `-DLPC_TEST_HELP` | Open the help popover at boot |
+| `-DLPC_MUSIC_PASTORALE`, `-DLPC_MUSIC_CLEMENTI`, `-DLPC_MUSIC_GYMNOPEDIE` | Play an alternative song instead of La Candeur |
 
 Test switches change the template, so rebuild without them afterwards.
 

@@ -43,7 +43,7 @@ def synthetic_image(seed):
     palette = [0] + [lpcpack.rgb555((i >> 3) & 31, ((255 - i) >> 3) & 31, (i * seed) & 31)
                      for i in range(1, lpcpack.UI_FIRST)] + lpcpack.UI_PALETTE
     pixels = bytes(((x ^ (y * seed)) + seed) % lpcpack.UI_FIRST
-                   for y in range(lpcpack.IMAGE_H) for x in range(lpcpack.IMAGE_W))
+                   for y in range(lpcpack.PHOTO_H) for x in range(lpcpack.IMAGE_W))
     return lpcpack.Image(palette=palette, pixels=pixels)
 
 

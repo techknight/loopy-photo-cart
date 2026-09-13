@@ -427,6 +427,11 @@ loopy-photo-cart/
     opening notes going out.
   - **Pending:** a listen on hardware (preset choice, loudness, effects over
     the music).
+  - **Hardware result (2026-09-13):** music and effects were "flawless", but
+    Gymnopédie was too melancholy. The default is now Burgmüller's *La
+    Candeur* (Mutopia #202). *La Pastorale*, Clementi's Sonatina Op. 36 No. 1
+    and Gymnopédie stay selectable with `-DLPC_MUSIC_*`. L/R in the viewer
+    now make the d-pad tick, since they step one photo.
 
 ### Phase 3 — Printing
 - Print flow and dialogs (§4), cassette check, input/clock/sound recovery.
@@ -638,10 +643,22 @@ loopy-photo-cart/
    | 6 grid pages × (57,600 pixels + 512 palette) | 348,672 |
    | Header and tables (generous) | 4,096 |
    | **Total** | **3,780,608** (about 400 KB spare) |
-2. **Printed aspect and orientation.** LoopyMSE uses an 8:7 sticker aspect,
-   Maniac framed at 16:15, and the XS-11 is 40×30 mm. Printing a calibration
-   grid on hardware in Phase 3 settles the crop aspect for the web app. The
-   user has agreed to a hardware test session.
+2. **Printed aspect and orientation: measured (2026-09-13).** The calibration
+   stickers showed three things.
+   - **Only 224 lines print.** The BIOS window is 256×241, but everything
+     below line 223 is cut off (the chart's bottom border never printed).
+   - **Dots aren't square:** 0.160 mm wide × 0.1425 mm tall (200 dots across
+     = 32 mm, 200 lines = 28.5 mm). A 256×224 print is about 41.0 × 31.9 mm,
+     shape 1.283 : 1 (`STICKER_ASPECT`).
+   - **Portrait photos print rotated to the right**, as designed.
+
+   Consequences, all implemented:
+   - Photos are stored at 256×224 dots and printed line for line; grid pages
+     stay 256×240.
+   - Encoders crop to 1.283 : 1 and resample each axis separately.
+   - The TV (square pixels, where the chart's circle was round) shows photos
+     resampled to 256×200 letterboxed, or 187×240 for portrait.
+   - The Python and web encoders and the cart agree (`docs/pack-format.md`).
    - The result becomes one constant, `STICKER_ASPECT`, in `web/src/core`.
      Until then 4:3 is the placeholder.
    - The crop box uses the physical sticker shape. If printer dots aren't

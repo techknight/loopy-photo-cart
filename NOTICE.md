@@ -46,11 +46,17 @@ v1.0 Universal.
 
 ## Music (public domain)
 
-The background music is Erik Satie's *Gymnopédie No. 1* (1888), from the
-[Mutopia Project](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37)
-edition #37. Its typesetter placed that edition in the public domain. The
-source files and the steps that turn them into `cart/src/music_gymnopedie.h`
-are in `cart/assets/music/`.
+The background music is J. F. F. Burgmüller's *La Candeur*, Op. 100 No. 1,
+from [Mutopia Project](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=202)
+edition #202. Three alternatives are kept for auditioning:
+- Burgmüller's *La Pastorale* (#218);
+- Clementi's Sonatina Op. 36 No. 1 (#804);
+- Satie's *Gymnopédie No. 1* (#37).
+
+Every one of these compositions is in the public domain, and each edition was
+placed in the public domain by its typesetter. The sources, and the steps that
+turn them into `cart/src/music_*.h`, are in `cart/assets/music/`
+(`SOURCES.md`).
 
 ## References
 

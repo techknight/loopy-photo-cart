@@ -29,7 +29,7 @@ enum lpc_pack_status {
 };
 
 struct lpc_photo {
-	const uint8_t *pixels;         // LPC_IMAGE_W x LPC_IMAGE_H
+	const uint8_t *pixels;         // LPC_IMAGE_W x LPC_PHOTO_H
 	const uint16_t *palette;       // 256 entries, RGB555
 	const uint16_t *print_palette; // 256 entries; the screen palette if none
 	uint8_t orientation;           // LPC_ORIENT_*

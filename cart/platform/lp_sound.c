@@ -26,7 +26,22 @@
 
 #include "lps.h"
 
+// The background music. La Candeur is the default; the others are kept for
+// auditioning (build with EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE, _CLEMENTI or
+// _GYMNOPEDIE). All are public domain; see assets/music/SOURCES.md.
+#if defined(LPC_MUSIC_PASTORALE)
+#include "music_pastorale.h"
+#define SONG lps_song_pastorale
+#elif defined(LPC_MUSIC_CLEMENTI)
+#include "music_clementi.h"
+#define SONG lps_song_clementi
+#elif defined(LPC_MUSIC_GYMNOPEDIE)
 #include "music_gymnopedie.h"
+#define SONG lps_song_gymnopedie
+#else
+#include "music_candeur.h"
+#define SONG lps_song_candeur
+#endif
 
 #define MUSIC_CHANNELS  0x0B
 #define EFFECT_CHANNELS 0x04
@@ -75,7 +90,7 @@ void LP_SoundInit(void)
 	sound_up = 1;
 
 	LPS_SfxSetBank(&sfx_bank);
-	LPS_MusicPlay(&lps_song_gymnopedie);
+	LPS_MusicPlay(&SONG);
 	music_on = 1;
 }
 

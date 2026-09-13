@@ -40,8 +40,9 @@
 #define TITLE_Y (BOX_Y + 22)
 #define LINE_Y  (BOX_Y + 60)
 
-// A result stays up this long unless dismissed.
-#define RESULT_FRAMES 240
+// A result shows this long and then goes by itself. It takes no input: asking
+// for a press after a print only invites a mis-press (hardware feedback).
+#define RESULT_FRAMES 150
 
 #define ANY_KEY (GAMEPAD_BTN_A | GAMEPAD_BTN_B | GAMEPAD_BTN_START)
 
@@ -79,29 +80,40 @@ static uint16_t Wait(uint16_t keys, unsigned frames)
 	}
 }
 
+// Show a status for RESULT_FRAMES, ignoring the pad, then drop any presses
+// made meanwhile.
+static void Status(const char *title, uint8_t title_colour, const char *line)
+{
+	unsigned n;
+
+	Dialog(title, title_colour, line);
+	for (n = 0; n < RESULT_FRAMES; ++n)
+		LP_VideoPresent();
+	(void) LP_PadEdges();
+}
+
 static void ShowResult(int status)
 {
 	switch (status) {
 	case LP_PRINT_OK:
-		Dialog("PRINTED!", LPC_UI_HIGHLIGHT, "A: OK");
+		Status("PRINTED!", LPC_UI_HIGHLIGHT, NULL);
 		break;
 	case LP_PRINT_NO_SEAL:
-		Dialog("NO CASSETTE", LPC_UI_ACCENT, "Insert a sticker cassette");
+		Status("NO CASSETTE", LPC_UI_ACCENT, "Insert a sticker cassette");
 		break;
 	case LP_PRINT_CANCELLED:
-		Dialog("CANCELLED", LPC_UI_WHITE, "A: OK");
+		Status("CANCELLED", LPC_UI_WHITE, NULL);
 		break;
 	case LP_PRINT_JAM:
-		Dialog("STICKER JAM", LPC_UI_ACCENT, "Check the cassette");
+		Status("STICKER JAM", LPC_UI_ACCENT, "Check the cassette");
 		break;
 	case LP_PRINT_HOT:
-		Dialog("PRINTER TOO HOT", LPC_UI_ACCENT, "Wait a moment, try again");
+		Status("PRINTER TOO HOT", LPC_UI_ACCENT, "Wait a moment, try again");
 		break;
 	default:
-		Dialog("PRINT FAILED", LPC_UI_ACCENT, "A: OK");
+		Status("PRINT FAILED", LPC_UI_ACCENT, NULL);
 		break;
 	}
-	(void) Wait(ANY_KEY, RESULT_FRAMES);
 }
 
 void LPC_PrintPhoto(unsigned index, int confirm)
@@ -123,8 +135,7 @@ void LPC_PrintPhoto(unsigned index, int confirm)
 		return;
 	}
 	if (seal == LP_SEAL_VHS) {
-		Dialog("WRONG CASSETTE", LPC_UI_ACCENT, "Use an XS-11 cassette");
-		(void) Wait(ANY_KEY, RESULT_FRAMES);
+		Status("WRONG CASSETTE", LPC_UI_ACCENT, "Use an XS-11 cassette");
 		return;
 	}
 
@@ -134,9 +145,17 @@ void LPC_PrintPhoto(unsigned index, int confirm)
 	LP_VideoPresent();
 	LP_VideoPresent();
 
-	memcpy(print_buf, photo.pixels, (size_t) LPC_IMAGE_W * LPC_IMAGE_H);
-	memcpy(print_buf + LPC_IMAGE_W * LPC_IMAGE_H,
-	       photo.pixels + LPC_IMAGE_W * (LPC_IMAGE_H - 1), LPC_IMAGE_W);
+	// The 224 stored lines are exactly what reaches the sticker; the BIOS
+	// buffer's remaining lines are cut off, and get copies of the last one.
+	{
+		unsigned row;
+
+		memcpy(print_buf, photo.pixels, (size_t) LPC_IMAGE_W * LPC_PHOTO_H);
+		for (row = LPC_PHOTO_H; row < LP_PRINT_H; ++row)
+			memcpy(print_buf + row * LPC_IMAGE_W,
+			       photo.pixels + LPC_IMAGE_W * (LPC_PHOTO_H - 1),
+			       LPC_IMAGE_W);
+	}
 
 	ShowResult(LP_PrintSticker(print_buf, photo.print_palette));
 }

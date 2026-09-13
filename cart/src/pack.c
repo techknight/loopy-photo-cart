@@ -79,7 +79,6 @@ _Static_assert(sizeof(struct pack_page) == 60, "PageEntry is 60 bytes");
 
 #define HEADER_SIZE   ((uint32_t) sizeof(struct pack_header))
 #define PALETTE_BYTES 512u
-#define IMAGE_BYTES   ((uint32_t) LPC_IMAGE_W * LPC_IMAGE_H)
 
 static const struct pack_header *pack;
 
@@ -122,10 +121,12 @@ static int Span(uint32_t off, uint32_t len, uint32_t lo, uint32_t hi)
 	return (off & 3u) == 0 && off >= lo && off <= hi && len <= hi - off;
 }
 
-static int ImageOk(const struct pack_image *im, const struct pack_header *h)
+// Photos are 256x224, grid pages 256x240 (docs/pack-format.md).
+static int ImageOk(const struct pack_image *im, const struct pack_header *h,
+                   unsigned height)
 {
-	return im->width == LPC_IMAGE_W && im->height == LPC_IMAGE_H &&
-	       im->codec == 0 && im->length == IMAGE_BYTES &&
+	return im->width == LPC_IMAGE_W && im->height == height &&
+	       im->codec == 0 && im->length == (uint32_t) LPC_IMAGE_W * height &&
 	       Span(im->palette, PALETTE_BYTES, h->tables_end, h->total_size) &&
 	       Span(im->pixels, im->length, h->tables_end, h->total_size);
 }
@@ -156,7 +157,7 @@ static enum lpc_pack_status CheckTables(const struct pack_header *h)
 	for (i = 0; i < h->photo_count; ++i) {
 		const struct pack_photo *p = &photos[i];
 
-		if (!ImageOk(&p->image, h) ||
+		if (!ImageOk(&p->image, h, LPC_PHOTO_H) ||
 		    p->orientation > LPC_ORIENT_PORTRAIT ||
 		    (p->print_palette != 0 &&
 		     !Span(p->print_palette, PALETTE_BYTES, h->tables_end,
@@ -171,7 +172,7 @@ static enum lpc_pack_status CheckTables(const struct pack_header *h)
 		unsigned left = h->photo_count - i * per_page;
 		unsigned c;
 
-		if (!ImageOk(&pg->image, h) || pg->first_photo != i * per_page ||
+		if (!ImageOk(&pg->image, h, LPC_PAGE_H) || pg->first_photo != i * per_page ||
 		    pg->cell_count != (left < per_page ? left : per_page))
 			return LPC_PACK_BAD_TABLES;
 
@@ -181,7 +182,7 @@ static enum lpc_pack_status CheckTables(const struct pack_header *h)
 			if (cl->w != LPC_THUMB_W || cl->h != LPC_THUMB_H ||
 			    cl->x < RING || cl->y < RING ||
 			    cl->x + LPC_THUMB_W + RING > LPC_IMAGE_W ||
-			    cl->y + LPC_THUMB_H + RING > LPC_IMAGE_H)
+			    cl->y + LPC_THUMB_H + RING > LPC_PAGE_H)
 				return LPC_PACK_BAD_TABLES;
 		}
 	}

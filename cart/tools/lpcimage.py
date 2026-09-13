@@ -5,7 +5,8 @@
 # COPYING.md.
 #
 # Photo conversion for the fixture tools: crop to the sticker's shape,
-# resize to 256x240, quantize to RGB555 around the reserved slots, and render
+# resample to 256x224 printer dots, quantize to RGB555 around the reserved
+# slots, and render
 # the 3x3 grid pages. This is a stand-in for the web app's pipeline
 # (docs/PLAN.md, Phase 4), good enough to put real photos on the cart for
 # testing. Requires Pillow.
@@ -28,9 +29,9 @@ SMALL_FONT_SIZE = 8
 SMALL_FONT_TOP = 1
 SMALL_FONT_ADVANCE = 8
 
-# Placeholder until the Phase 3 hardware test measures the printed sticker
-# (docs/PLAN.md section 8, STICKER_ASPECT).
-STICKER_ASPECT = 4 / 3
+# The printed shape of a photo, measured on hardware (lpcpack.STICKER_ASPECT,
+# about 1.283 : 1).
+STICKER_ASPECT = lpcpack.STICKER_ASPECT
 
 # Slot 0 is black (it doubles as the backdrop) and 248..255 are the UI's, so a
 # photo gets slots 1..247.
@@ -67,8 +68,8 @@ def _posterize_lut():
     return lut * 3
 
 
-def crop_upright(img, portrait):
-    """Centre-crop to the sticker's shape and resize, still upright."""
+def crop_box(img, portrait):
+    """Centre-crop to the sticker's printed shape, at the photo's own pixels."""
     aspect = 1 / STICKER_ASPECT if portrait else STICKER_ASPECT
     w, h = img.size
     if w / h > aspect:
@@ -77,12 +78,20 @@ def crop_upright(img, portrait):
     else:
         ch = round(w / aspect)
         box = (0, (h - ch) // 2, w, (h - ch) // 2 + ch)
-    size = (lpcpack.IMAGE_H, lpcpack.IMAGE_W) if portrait else (lpcpack.IMAGE_W, lpcpack.IMAGE_H)
-    return img.crop(box).resize(size, PILImage.Resampling.LANCZOS, reducing_gap=3.0)
+    return img.crop(box)
+
+
+def to_dots(crop, portrait):
+    """Resample a crop to printer dots, upright: 256x224, or 224x256 portrait.
+
+    The dots are not square, so the two axes scale by different amounts; that
+    is what makes the sticker show the crop's true shape."""
+    size = (lpcpack.PHOTO_H, lpcpack.IMAGE_W) if portrait else (lpcpack.IMAGE_W, lpcpack.PHOTO_H)
+    return crop.resize(size, PILImage.Resampling.LANCZOS, reducing_gap=3.0)
 
 
 def quantize(img, dither=True):
-    """RGB image (256x240) -> lpcpack.Image using slots 1..247 only."""
+    """RGB image (a 256-wide photo or page) -> lpcpack.Image, slots 1..247 only."""
     post = img.convert("RGB").point(_posterize_lut())
     first = post.quantize(colors=PHOTO_COLOURS, method=PILImage.Quantize.MEDIANCUT,
                           dither=PILImage.Dither.NONE)
@@ -111,13 +120,17 @@ def quantize(img, dither=True):
 
 
 def load_photo(path, dither=True):
-    """A photo file -> (lpcpack.Photo, upright sticker crop as RGB)."""
+    """A photo file -> (lpcpack.Photo, the upright crop at its own pixels).
+
+    The crop is returned unresampled, so thumbnails (square screen pixels)
+    are cut from the true picture rather than from the printer-dot copy."""
     with PILImage.open(path) as im:
         img = ImageOps.exif_transpose(im).convert("RGB")
     portrait = img.height > img.width
-    upright = crop_upright(img, portrait)
-    # Portrait photos are stored 90 degrees clockwise: 240x256 -> 256x240.
-    stored = upright.transpose(PILImage.Transpose.ROTATE_270) if portrait else upright
+    upright = crop_box(img, portrait)
+    dots = to_dots(upright, portrait)
+    # Portrait photos are stored 90 degrees clockwise: 224x256 -> 256x224.
+    stored = dots.transpose(PILImage.Transpose.ROTATE_270) if portrait else dots
     photo = lpcpack.Photo(
         image=quantize(stored, dither),
         orientation=lpcpack.ORIENT_PORTRAIT if portrait else lpcpack.ORIENT_LANDSCAPE,

@@ -54,36 +54,57 @@ static uint8_t osd_under[OSD_MAX_W * OSD_H];
 static int osd_x, osd_w;
 static int osd_frames;
 
-// A portrait photo is 240x256 upright; on screen it is scaled to 240 lines
-// tall, which makes it 225 wide, centred with black bars.
-#define PORTRAIT_W 225
-#define PORTRAIT_X ((LP_FB_W - PORTRAIT_W) / 2)
+// Photos are stored at the printer's resolution (256x224 dots, each dot wider
+// than tall), and the TV's pixels are square, so the viewer resamples to show
+// the photo in the shape it prints (lpc.h): a landscape photo 256x200 with
+// black bars above and below, an upright portrait one 187x240 with bars at
+// the sides. Nearest-neighbour, from tables built once.
+#define LANDSCAPE_Y ((LP_FB_H - LPC_TV_LANDSCAPE_H) / 2)
+#define PORTRAIT_X  ((LP_FB_W - LPC_TV_PORTRAIT_W) / 2)
 
-static uint8_t portrait_row[PORTRAIT_W]; // screen column -> stored row
-static uint8_t portrait_col[LP_FB_H];    // screen row -> stored column
-static int portrait_ready;
+static uint8_t landscape_row[LPC_TV_LANDSCAPE_H]; // screen row -> stored row
+static uint8_t portrait_row[LPC_TV_PORTRAIT_W];   // screen column -> stored row
+static uint8_t portrait_col[LP_FB_H];             // screen row -> stored column
+static int tables_ready;
+
+static void BuildTables(void)
+{
+	int i;
+
+	for (i = 0; i < LPC_TV_LANDSCAPE_H; ++i)
+		landscape_row[i] = (uint8_t) (i * LPC_PHOTO_H / LPC_TV_LANDSCAPE_H);
+	// A portrait photo is stored rotated 90 degrees clockwise: stored pixel
+	// (x, y) is upright pixel (y, 255 - x), so the upright picture is 224
+	// stored rows wide and 256 stored columns tall.
+	for (i = 0; i < LPC_TV_PORTRAIT_W; ++i)
+		portrait_row[i] = (uint8_t) (i * LPC_PHOTO_H / LPC_TV_PORTRAIT_W);
+	for (i = 0; i < LP_FB_H; ++i)
+		portrait_col[i] = (uint8_t) (LPC_IMAGE_W - 1 - i * LPC_IMAGE_W / LP_FB_H);
+	tables_ready = 1;
+}
+
+static void DrawLandscape(const uint8_t *stored)
+{
+	uint8_t *fb = LP_Fb();
+	int sy;
+
+	memset(fb, LPC_UI_BLACK, (size_t) LP_FB_W * LP_FB_H);
+	for (sy = 0; sy < LPC_TV_LANDSCAPE_H; ++sy)
+		memcpy(fb + (LANDSCAPE_Y + sy) * LP_FB_W,
+		       stored + landscape_row[sy] * LPC_IMAGE_W, LPC_IMAGE_W);
+}
 
 static void DrawPortrait(const uint8_t *stored)
 {
 	uint8_t *fb = LP_Fb();
 	int sx, sy;
 
-	if (!portrait_ready) {
-		// Stored pixel (x, y) is upright pixel (y, 255 - x).
-		for (sx = 0; sx < PORTRAIT_W; ++sx)
-			portrait_row[sx] = (uint8_t) (sx * LPC_IMAGE_H / PORTRAIT_W);
-		for (sy = 0; sy < LP_FB_H; ++sy)
-			portrait_col[sy] = (uint8_t) (LPC_IMAGE_W - 1 -
-			                              sy * LPC_IMAGE_W / LP_FB_H);
-		portrait_ready = 1;
-	}
-
 	memset(fb, LPC_UI_BLACK, (size_t) LP_FB_W * LP_FB_H);
 	for (sy = 0; sy < LP_FB_H; ++sy) {
 		unsigned col = portrait_col[sy];
 		uint8_t *d = fb + sy * LP_FB_W + PORTRAIT_X;
 
-		for (sx = 0; sx < PORTRAIT_W; ++sx)
+		for (sx = 0; sx < LPC_TV_PORTRAIT_W; ++sx)
 			d[sx] = stored[portrait_row[sx] * LPC_IMAGE_W + col];
 	}
 }
@@ -92,11 +113,13 @@ static void ShowPhoto(unsigned index)
 {
 	struct lpc_photo p;
 
+	if (!tables_ready)
+		BuildTables();
 	LPC_PackPhoto(index, &p);
 	if (p.orientation == LPC_ORIENT_PORTRAIT)
 		DrawPortrait(p.pixels);
 	else
-		memcpy(LP_Fb(), p.pixels, (size_t) LP_FB_W * LP_FB_H);
+		DrawLandscape(p.pixels);
 	LP_PalLoad(p.palette);
 	LP_FbChanged();
 	osd_frames = 0;
@@ -169,12 +192,13 @@ unsigned LPC_ViewerRun(unsigned index, int can_return)
 			LP_SfxPlay(LP_SFX_BUTTON);
 			LP_MusicToggle();
 		} else if (edges & (GAMEPAD_BTN_LEFT | GAMEPAD_BTN_LTRIG)) {
-			LP_SfxPlay(edges & GAMEPAD_BTN_LEFT ? LP_SFX_MOVE : LP_SFX_BUTTON);
+			// L too: it steps one photo, like the d-pad.
+			LP_SfxPlay(LP_SFX_MOVE);
 			index = index ? index - 1 : count - 1;
 			ShowPhoto(index);
 			OsdShow(index, count);
 		} else if (edges & (GAMEPAD_BTN_RIGHT | GAMEPAD_BTN_RTRIG)) {
-			LP_SfxPlay(edges & GAMEPAD_BTN_RIGHT ? LP_SFX_MOVE : LP_SFX_BUTTON);
+			LP_SfxPlay(LP_SFX_MOVE);
 			index = index + 1 < count ? index + 1 : 0;
 			ShowPhoto(index);
 			OsdShow(index, count);

@@ -44,7 +44,14 @@ To build a ROM:
   multiple of 4. The SH-1 raises an address error on a 16-bit or 32-bit read
   at an odd address, and 4 keeps copies fast.
 - **Colours:** RGB555, as `r << 10 | g << 5 | b`, with 5 bits per channel.
-- **Images:** 256×240, one palette index per pixel, row 0 at the top.
+- **Images:** one palette index per pixel, row 0 at the top.
+  - **Photos are 256×224:** exactly the printer's dots. The sticker shows 256
+    dots by 224 lines (measured on hardware; the BIOS print buffer is 241
+    lines, but the rest is cut off). A printer dot is 0.160 mm wide and
+    0.1425 mm tall, so a photo is 1.283 times as wide as tall on the sticker,
+    and encoders crop to that shape. The cart resamples photos to that shape
+    on the TV's square pixels: 256×200 for landscape, 187×240 for portrait.
+  - **Grid pages are 256×240:** a whole screen.
 - **Pixel index 0:** transparent on the Loopy's bitmap layer, so it shows the
   backdrop. The backdrop also fills the TV raster outside the 256-pixel-wide
   picture. The cart sets the backdrop to palette entry 0, so **entry 0 must
@@ -91,7 +98,7 @@ the SH-1, and the web app verifies the finished ROM.
 | Offset | Type | Field | Notes |
 |---|---|---|---|
 | 0 | u16 | `width` | 256 |
-| 2 | u16 | `height` | 240 |
+| 2 | u16 | `height` | 224 for a photo, 240 for a grid page |
 | 4 | u8 | `codec` | 0 = raw. No other value is defined. |
 | 5 | u8 | reserved | 0 |
 | 6 | u16 | reserved | 0 |
@@ -109,8 +116,8 @@ the SH-1, and the web app verifies the finished ROM.
 | 25 | u8 | reserved | 0 |
 | 26 | u16 | reserved | 0 |
 
-For a portrait photo, the upright picture is 240 wide by 256 tall, and stored
-pixel `(x, y)` is upright pixel `(y, 255 − x)`. The cart turns it back upright
+For a portrait photo, the upright picture is 224 dots wide by 256 tall, and
+stored pixel `(x, y)` is upright pixel `(y, 255 − x)`. The cart turns it back upright
 on screen and prints the stored buffer as-is.
 
 ### PageEntry (60 bytes)
@@ -195,7 +202,8 @@ If any check fails, the cart shows the no-photos screen with the reason.
   - The grid must be 3×3.
 - **Table offsets:** `photo_table`, `page_table` and a non-zero `meta` must lie
   aligned inside the tables region.
-- **Every ImageRef:** 256×240, codec 0, and length 57,600. Its palette and
+- **Every ImageRef:** codec 0, 256 wide, and 224 tall for a photo (length
+  57,344) or 240 for a page (57,600). Its palette and
   pixels must lie aligned inside `[tables_end, total_size)`.
 - **Every photo:** `orientation` must be 0 or 1, and a non-zero
   `print_palette` must lie inside the image region.
@@ -204,6 +212,6 @@ If any check fails, the cart shows the no-photos screen with the reason.
 
 ## Size budget
 
-A 54-photo pack with print palettes and 6 grid pages takes 3,514,368 bytes of
+A 54-photo pack with print palettes and 6 grid pages takes 3,500,544 bytes of
 images plus under 4 KB of tables. That fits below the 4 MB limit with the
 256 KB code region (`docs/PLAN.md` §8).

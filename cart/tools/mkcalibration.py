@@ -10,7 +10,7 @@
 # Two test charts, printed and measured, settle what the web app's crop box
 # needs (docs/PLAN.md section 8):
 #
-#   1  LANDSCAPE  the stored 256x240 buffer as the printer receives it
+#   1  LANDSCAPE  the stored 256x224 photo as the printer receives it
 #   2  PORTRAIT   an upright chart stored rotated 90 degrees clockwise, the way
 #                 portrait photos are, to show which way up it prints
 #
@@ -84,8 +84,9 @@ def main():
     ap.add_argument("--out", default=os.path.join(CART, "build", "calibration.bin"))
     args = ap.parse_args()
 
-    landscape = chart(lpcpack.IMAGE_W, lpcpack.IMAGE_H, "1 LANDSCAPE", up_arrow=True)
-    portrait_up = chart(lpcpack.IMAGE_H, lpcpack.IMAGE_W, "2 PORTRAIT", up_arrow=True)
+    # Drawn directly in printer dots, so the bars measure the dots themselves.
+    landscape = chart(lpcpack.IMAGE_W, lpcpack.PHOTO_H, "1 LANDSCAPE", up_arrow=True)
+    portrait_up = chart(lpcpack.PHOTO_H, lpcpack.IMAGE_W, "2 PORTRAIT", up_arrow=True)
     portrait_stored = portrait_up.transpose(Image.Transpose.ROTATE_270)
 
     photos = [

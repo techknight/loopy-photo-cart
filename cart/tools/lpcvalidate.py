@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import lpcpack
 
-W, H = lpcpack.IMAGE_W, lpcpack.IMAGE_H
+W = lpcpack.IMAGE_W
 
 
 def validate(rom):
@@ -61,6 +61,7 @@ def validate(rom):
 
     def image_ref(off, what, photo):
         w, h, codec, _a, _b, pal, pix, length = struct.unpack_from(">HHBBHIII", rom, base + off)
+        H = lpcpack.PHOTO_H if photo else lpcpack.PAGE_H
         if (w, h, codec, length) != (W, H, 0, W * H):
             errors.append(f"{what}: bad image header")
             return
@@ -100,7 +101,7 @@ def validate(rom):
             errors.append(f"page {p}: wrong photos")
         for c in range(count):
             x, y, w, h = struct.unpack_from("4B", rom, base + off + 24 + 4 * c)
-            if (w, h) != (64, 60) or x < 4 or y < 4 or x + 68 > W or y + 64 > H:
+            if (w, h) != (64, 60) or x < 4 or y < 4 or x + 68 > W or y + 64 > lpcpack.PAGE_H:
                 errors.append(f"page {p} cell {c}: bad geometry")
     return errors, (nphotos, npages, total, len(rom))
 
