@@ -51,7 +51,7 @@ def main():
         photos.append(photo)
         thumbs.append(lpcimage.thumbnail(upright))
 
-    pages = [] if args.no_grid else lpcimage.render_pages(thumbs, args.title)
+    pages = [] if args.no_grid else lpcimage.render_pages(thumbs)
     pack = lpcpack.encode_pack(photos, pages, meta={"title": args.title, "tool": "mkfixture"})
     with open(args.template, "rb") as f:
         template = f.read()

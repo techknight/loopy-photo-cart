@@ -17,10 +17,16 @@ from PIL import Image as PILImage, ImageDraw, ImageFont, ImageOps
 import lpcpack
 
 CART = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FONT_PATH = os.path.join(CART, "assets", "font", "HomeVideo-Regular.ttf")
+FONT_PATH = os.path.join(CART, "assets", "font", "home-video", "HomeVideo-Regular.ttf")
 FONT_SIZE = 20       # Home Video's native pixel size (tools/mkfont.py)
 FONT_TOP = 2         # first inked row below the draw origin
 FONT_ADVANCE = 12
+
+# Public Pixel Font (GGBotNet, CC0): 8 px cell, mixed case, for small print.
+SMALL_FONT_PATH = os.path.join(CART, "assets", "font", "public-pixel", "PublicPixel.ttf")
+SMALL_FONT_SIZE = 8
+SMALL_FONT_TOP = 1
+SMALL_FONT_ADVANCE = 8
 
 # Placeholder until the Phase 3 hardware test measures the printed sticker
 # (docs/PLAN.md section 8, STICKER_ASPECT).
@@ -38,7 +44,12 @@ CELL_YS = (34, 100, 166)
 HEADER_Y = 14
 HEADER_X = 16
 HEADER_RIGHT = 240
-TITLE_MAX_CHARS = 14
+HEADER_TITLE = "PHOTOS"
+# Control hints in Public Pixel, two lines between the title (which ends at
+# x = 88) and the page counter (which starts at x = 204 for "6/6").
+CONTROLS_X = 100
+CONTROLS_YS = (13, 22)
+CONTROLS = ("A:VIEW", "L/R:PAGE")
 
 UI_BLACK, UI_BG, UI_PANEL, UI_DIM, UI_GREY, UI_WHITE, UI_ACCENT, UI_HIGHLIGHT = range(248, 256)
 
@@ -117,18 +128,28 @@ def thumbnail(upright):
     return ImageOps.fit(upright, (THUMB_W, THUMB_H), PILImage.Resampling.LANCZOS)
 
 
-def _draw_text(pixels, x, y, text, colour):
-    font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
+def _draw_font(pixels, font_path, size, top, x, y, text, colour):
+    font = ImageFont.truetype(font_path, size)
     mask = PILImage.new("1", (lpcpack.IMAGE_W, lpcpack.IMAGE_H), 0)
     d = ImageDraw.Draw(mask)
     d.fontmode = "1"
-    d.text((x, y - FONT_TOP), text, font=font, fill=1)
+    d.text((x, y - top), text, font=font, fill=1)
     for i, on in enumerate(mask.getdata()):
         if on:
             pixels[i] = colour
 
 
-def render_pages(thumbs, title, dither=False):
+def _draw_text(pixels, x, y, text, colour):
+    """Home Video Font; (x, y) is the top-left of the ink."""
+    _draw_font(pixels, FONT_PATH, FONT_SIZE, FONT_TOP, x, y, text, colour)
+
+
+def _draw_small_text(pixels, x, y, text, colour):
+    """Public Pixel Font; (x, y) is the top-left of the ink."""
+    _draw_font(pixels, SMALL_FONT_PATH, SMALL_FONT_SIZE, SMALL_FONT_TOP, x, y, text, colour)
+
+
+def render_pages(thumbs, dither=False):
     """Upright thumbnails (in photo order) -> [lpcpack.Page].
 
     Not dithered by default: nine photos share one palette, and at 64x60
@@ -136,7 +157,6 @@ def render_pages(thumbs, title, dither=False):
     mapping looks cleaner at thumbnail size."""
     per_page = lpcpack.CELLS_PER_PAGE
     page_count = -(-len(thumbs) // per_page)
-    title = title.upper()[:TITLE_MAX_CHARS]
     pages = []
 
     for p in range(page_count):
@@ -158,7 +178,9 @@ def render_pages(thumbs, title, dither=False):
             if not flag:
                 pixels[i] = UI_BG
 
-        _draw_text(pixels, HEADER_X, HEADER_Y, title, UI_ACCENT)
+        _draw_text(pixels, HEADER_X, HEADER_Y, HEADER_TITLE, UI_ACCENT)
+        for line, y in zip(CONTROLS, CONTROLS_YS):
+            _draw_small_text(pixels, CONTROLS_X, y, line, UI_WHITE)
         counter = f"{p + 1}/{page_count}"
         _draw_text(pixels, HEADER_RIGHT - FONT_ADVANCE * len(counter), HEADER_Y, counter, UI_GREY)
 

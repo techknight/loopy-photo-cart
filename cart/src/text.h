@@ -8,7 +8,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //
 //
-// Text on the framebuffer, in Home Video Font (assets/font, CC0 1.0): a
+// Text on the framebuffer, in Home Video Font (assets/font/home-video, CC0): a
 // monospaced 12x14 cell, uppercase letters only (lowercase draws as
 // uppercase). About 18 characters fit a line inside the TV-safe margins.
 // ASCII 32-126; anything else draws as a space.

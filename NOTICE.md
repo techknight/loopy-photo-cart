@@ -16,13 +16,18 @@ supplies the cartridge program's base:
 Altered files are marked as such. The zlib notice is in
 `cart/LICENSE-loopy-template.txt`.
 
-## Home Video Font (CC0 1.0)
+## Fonts by GGBotNet (CC0 1.0)
 
-The on-screen font is Home Video Font by GGBotNet, from
-<https://ggbot.itch.io/home-video-font>. It is dedicated to the public domain
-under Creative Commons Zero v1.0 Universal. The font file
-and its licence are in `cart/assets/font/`, and `cart/src/font_homevideo.h`
-is generated from it.
+Both fonts are dedicated to the public domain under Creative Commons Zero
+v1.0 Universal.
+
+- **Home Video Font**, from <https://ggbot.itch.io/home-video-font>: the main
+  on-screen font. The font file and its licence are in
+  `cart/assets/font/home-video/`, and `cart/src/font_homevideo.h` is generated
+  from it.
+- **Public Pixel Font**, from <https://ggbot.itch.io/public-pixel-font>: the
+  small text on grid pages, such as control hints. The font file and its
+  licence are in `cart/assets/font/public-pixel/`.
 
 ## References
 

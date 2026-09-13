@@ -362,7 +362,9 @@ loopy-photo-cart/
 
 ### Phase 2 — Grid and cursor ✅ in LoopyMSE (2026-09-13); hardware 60 fps check pending
 - Grid pages are pre-rendered 256×240 images (`cart/tools/lpcimage.py`):
-  - title and "page/pages" header at y = 14;
+  - a header at y = 14: "PHOTOS" and "page/pages" in Home Video Font, with
+    control hints ("A:VIEW", "L/R:PAGE") between them in Public Pixel Font
+    (GGBotNet, CC0, <https://ggbot.itch.io/public-pixel-font>);
   - 3×3 64×60 thumbnails at x = 16/96/176, y = 34/100/166;
   - UI-slot background;
   - **no dithering** (at thumbnail size it left white specks).

@@ -137,9 +137,12 @@ Rules in v1:
   ring, so `x ≥ 4`, `y ≥ 4`, `x + 68 ≤ 256` and `y + 64 ≤ 240`.
 
 The reference layout (`cart/tools/lpcimage.py`) puts cells at x = 16, 96 and
-176 and y = 34, 100 and 166, with a header row at y = 14. The header shows the
-title on the left and "page/pages" on the right, and the page background uses
-UI slot 249.
+176 and y = 34, 100 and 166, with a header row at y = 14. The header shows:
+- "PHOTOS" on the left, in Home Video Font;
+- two lines of control hints at x = 100, y = 13 and 22, in Public Pixel Font;
+- "page/pages" on the right.
+
+The page background uses UI slot 249.
 
 ### Meta strings
 
