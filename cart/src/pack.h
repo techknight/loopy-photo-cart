@@ -35,6 +35,19 @@ struct lpc_photo {
 	uint8_t orientation;           // LPC_ORIENT_*
 };
 
+// Where a thumbnail sits on its page (LPC_THUMB_W x LPC_THUMB_H in v1).
+struct lpc_cell {
+	uint8_t x, y, w, h;
+};
+
+struct lpc_page {
+	const uint8_t *pixels;
+	const uint16_t *palette;
+	uint16_t first_photo;
+	uint8_t cell_count;
+	const struct lpc_cell *cells; // cell_count entries
+};
+
 // Find and validate the pack. Nothing past the cartridge header's own end
 // address is read, so a bare template never reads beyond its data. The
 // accessors below are only valid after this returns LPC_PACK_OK.
@@ -42,6 +55,10 @@ enum lpc_pack_status LPC_PackOpen(void);
 
 unsigned LPC_PackPhotoCount(void);
 void LPC_PackPhoto(unsigned index, struct lpc_photo *out);
+
+// 0 when the pack has no grid.
+unsigned LPC_PackPageCount(void);
+void LPC_PackPage(unsigned index, struct lpc_page *out);
 
 // A short on-screen reason for a status (at most 18 characters).
 const char *LPC_PackStatusText(enum lpc_pack_status status);

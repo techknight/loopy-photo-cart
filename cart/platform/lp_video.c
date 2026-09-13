@@ -47,9 +47,17 @@
 // well inside a tick, and 240 divides by 8.
 #define BLIT_ROWS_PER_BURST 8
 
+// With BG_CTRL = 0 the tilemaps take the first 0x4000 bytes of tile VRAM
+// (two 64x64 maps), so char data starts at word 0x2000 (LoopyMSE render.cpp
+// get_tilemap_info; the same constant LoopyManiac's cursor uses on hardware).
+#define CHAR_DATA_W  0x2000u
+#define TILE_VRAM_W  0x8000u
+
 static uint8_t framebuffer[LP_FB_W * LP_FB_H] __attribute__((aligned(4)));
 static uint16_t pal_shadow[256];
 static int pal_dirty;
+static uint32_t oam_shadow[LP_OAM_SLOTS];
+static int oam_dirty;
 static int back_page;
 // How many VRAM pages still hold an older framebuffer: 2 after a change, and
 // one fewer per present.
@@ -92,16 +100,28 @@ void LP_VideoInit(void)
 	// The BIOS wants a few fields with scanning off to detect the device.
 	bios_vdpMode(CONTROL_MODE_NONE, 0);
 
-	for (i = 0; i < 0x80; ++i)
+	for (i = 0; i < LP_OAM_SLOTS; ++i) {
+		oam_shadow[i] = LP_OAM_HIDDEN;
 		VDP.OAM[i] = LP_OAM_HIDDEN;
+	}
+	oam_dirty = 0;
+
+	// Tile VRAM powers up as DRAM garbage too; clear it while the display
+	// is blanked, so no sprite ever fetches a cell nothing uploaded.
+	for (i = 0; i < TILE_VRAM_W; ++i)
+		VDP.TILE_VRAM[i] = 0;
 
 	// Mode first: it tramples the registers below if they are written
 	// before it.
 	bios_vdpMode(CONTROL_MODE_GAMEPAD, VIDEO_HEIGHT_240P);
 
 	VDP.BG_CTRL = 0;
-	VDP.OBJ_CTRL = OBJ_FORMAT_4BPP;
 	VDP.CHARBASE = 0;
+	// One OBJ engine (id offset 0: every slot is OBJ0), 4bpp, char window 0,
+	// and every palslot on palette bank 15 -- the UI slots.
+	VDP.OBJ_CTRL = OBJ_FORMAT_4BPP;
+	VDP.OBJ_SUBPAL[0] = OBJ_SUBPAL(15, 15, 15, 15);
+	VDP.OBJ_SUBPAL[1] = OBJ_SUBPAL(15, 15, 15, 15);
 
 	memset(framebuffer, 0, sizeof framebuffer);
 	memset(pal_shadow, 0, sizeof pal_shadow);
@@ -131,7 +151,34 @@ void LP_VideoInit(void)
 	               | PRIORITY_OBJ0_A;
 	VDP.LAYER_CTRL = LAYER_SCREEN(LAYER_SCREEN_A, LAYER_SCREEN_A,
 	                              LAYER_SCREEN_A, LAYER_SCREEN_A)
-	               | LAYER_ENABLE_BM0;
+	               | LAYER_ENABLE_BM0 | LAYER_ENABLE_OBJ0;
+}
+
+void LP_OamSet(unsigned slot, uint32_t entry)
+{
+	if (slot < LP_OAM_SLOTS && oam_shadow[slot] != entry) {
+		oam_shadow[slot] = entry;
+		oam_dirty = 1;
+	}
+}
+
+void LP_OamHide(unsigned slot)
+{
+	LP_OamSet(slot, LP_OAM_HIDDEN);
+}
+
+void LP_ObjCellsUpload(unsigned cell, const uint8_t *src, unsigned ncells)
+{
+	volatile uint16_t *d = &VDP.TILE_VRAM[CHAR_DATA_W + cell * 16];
+	unsigned words = ncells * 16;
+	uint32_t sr;
+	unsigned i;
+
+	bios_vsync();
+	sr = LP_IrqBlock();
+	for (i = 0; i < words; ++i)
+		d[i] = (uint16_t) ((src[2 * i] << 8) | src[2 * i + 1]);
+	LP_IrqRestore(sr);
 }
 
 uint8_t *LP_Fb(void)
@@ -182,6 +229,14 @@ void LP_VideoPresent(void)
 			VDP.PALETTE[i] = pal_shadow[i];
 		VDP.BACKDROP_A = pal_shadow[0];
 		pal_dirty = 0;
+	}
+
+	// Sprites move in the same window as the flip, so the cursor and the
+	// page it sits on always change together.
+	if (oam_dirty) {
+		for (i = 0; i < LP_OAM_SLOTS; ++i)
+			VDP.OAM[i] = oam_shadow[i];
+		oam_dirty = 0;
 	}
 
 	// The flip: one 16-bit store. The VDP re-reads this register every

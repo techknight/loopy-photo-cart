@@ -58,17 +58,17 @@ struct pack_photo {
 	uint16_t reserved1;
 };
 
-struct pack_cell {
-	uint8_t x, y, w, h;
-};
-
 struct pack_page {
 	struct pack_image image;
 	uint16_t first_photo;
 	uint8_t  cell_count;
 	uint8_t  reserved;
-	struct pack_cell cells[LPC_GRID_COLS * LPC_GRID_ROWS];
+	struct lpc_cell cells[LPC_GRID_COLS * LPC_GRID_ROWS];
 };
+
+// The cursor ring is 4 px wider than the thumbnail on every side and must
+// stay on screen (src/cursor.h).
+#define RING 4
 
 _Static_assert(sizeof(struct pack_header) == 40, "PackHeader is 40 bytes");
 _Static_assert(offsetof(struct pack_header, photo_count) == 16, "PackHeader layout");
@@ -167,11 +167,23 @@ static enum lpc_pack_status CheckTables(const struct pack_header *h)
 	pages = (const struct pack_page *) (LPC_PACK_BASE + h->page_table);
 	for (i = 0; i < h->page_count; ++i) {
 		const struct pack_page *pg = &pages[i];
+		unsigned per_page = LPC_GRID_COLS * LPC_GRID_ROWS;
+		unsigned left = h->photo_count - i * per_page;
+		unsigned c;
 
-		if (!ImageOk(&pg->image, h) || pg->cell_count == 0 ||
-		    pg->cell_count > LPC_GRID_COLS * LPC_GRID_ROWS ||
-		    (uint32_t) pg->first_photo + pg->cell_count > h->photo_count)
+		if (!ImageOk(&pg->image, h) || pg->first_photo != i * per_page ||
+		    pg->cell_count != (left < per_page ? left : per_page))
 			return LPC_PACK_BAD_TABLES;
+
+		for (c = 0; c < pg->cell_count; ++c) {
+			const struct lpc_cell *cl = &pg->cells[c];
+
+			if (cl->w != LPC_THUMB_W || cl->h != LPC_THUMB_H ||
+			    cl->x < RING || cl->y < RING ||
+			    cl->x + LPC_THUMB_W + RING > LPC_IMAGE_W ||
+			    cl->y + LPC_THUMB_H + RING > LPC_IMAGE_H)
+				return LPC_PACK_BAD_TABLES;
+		}
 	}
 
 	return LPC_PACK_OK;
@@ -235,6 +247,23 @@ void LPC_PackPhoto(unsigned index, struct lpc_photo *out)
 	    ? (const uint16_t *) (LPC_PACK_BASE + p->print_palette)
 	    : out->palette;
 	out->orientation = p->orientation;
+}
+
+unsigned LPC_PackPageCount(void)
+{
+	return pack ? pack->page_count : 0;
+}
+
+void LPC_PackPage(unsigned index, struct lpc_page *out)
+{
+	const struct pack_page *pg = &((const struct pack_page *)
+	    (LPC_PACK_BASE + pack->page_table))[index];
+
+	out->pixels = (const uint8_t *) (LPC_PACK_BASE + pg->image.pixels);
+	out->palette = (const uint16_t *) (LPC_PACK_BASE + pg->image.palette);
+	out->first_photo = pg->first_photo;
+	out->cell_count = pg->cell_count;
+	out->cells = pg->cells;
 }
 
 const char *LPC_PackStatusText(enum lpc_pack_status status)

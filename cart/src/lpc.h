@@ -43,6 +43,8 @@
 #define LPC_GRID_ROWS  3
 #define LPC_IMAGE_W    256
 #define LPC_IMAGE_H    240
+#define LPC_THUMB_W    64
+#define LPC_THUMB_H    60
 
 #define LPC_ORIENT_LANDSCAPE 0
 #define LPC_ORIENT_PORTRAIT  1  // stored rotated 90 degrees clockwise

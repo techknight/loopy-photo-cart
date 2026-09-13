@@ -129,6 +129,18 @@ web app.
 Cell `i` shows photo `first_photo + i`, and cells run left to right, top to
 bottom.
 
+Rules in v1:
+- **Contents:** page `p` holds photos `9p` onward: `first_photo` is `9p` and
+  `cell_count` is `min(9, photo_count − 9p)`.
+- **Cell size:** every used cell is a 64×60 thumbnail.
+- **Position:** each cell must leave 4 px on every side for the cart's cursor
+  ring, so `x ≥ 4`, `y ≥ 4`, `x + 68 ≤ 256` and `y + 64 ≤ 240`.
+
+The reference layout (`cart/tools/lpcimage.py`) puts cells at x = 16, 96 and
+176 and y = 34, 100 and 166, with a header row at y = 14. The header shows the
+title on the left and "page/pages" on the right, and the page background uses
+UI slot 249.
+
 ### Meta strings
 
 A sequence of NUL-terminated UTF-8 strings of the form `key=value`, ended by an

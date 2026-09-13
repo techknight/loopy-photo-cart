@@ -8,16 +8,14 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //
 //
-// Full-screen photo viewer.
+// The thumbnail grid: pages of 3x3 pre-rendered by the web app.
 //
 
-#ifndef LPC_VIEWER_H
-#define LPC_VIEWER_H
+#ifndef LPC_GRID_H
+#define LPC_GRID_H
 
-// Show photo `index` full screen; left/right and L/R step through the pack,
-// wrapping. Requires an open pack with at least one photo. With `can_return`,
-// B returns the index of the photo showing; without it (a pack with no grid)
-// this never returns.
-unsigned LPC_ViewerRun(unsigned index, int can_return);
+// Browse the pack's grid pages, opening the full-screen viewer on A. Requires
+// an open pack with at least one page. Does not return.
+void LPC_GridRun(void);
 
 #endif

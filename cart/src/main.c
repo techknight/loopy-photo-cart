@@ -19,6 +19,7 @@
 #include "lp_input.h"
 #include "lp_video.h"
 
+#include "grid.h"
 #include "lpc.h"
 #include "pack.h"
 #include "text.h"
@@ -64,8 +65,10 @@ int main(void)
 	LP_ClockInit();
 
 	status = LPC_PackOpen();
+	if (status == LPC_PACK_OK && LPC_PackPageCount() > 0)
+		LPC_GridRun();
 	if (status == LPC_PACK_OK && LPC_PackPhotoCount() > 0)
-		LPC_ViewerRun(0);
+		(void) LPC_ViewerRun(0, 0);
 
 	ScreenNoPhotos(status);
 	return 0;

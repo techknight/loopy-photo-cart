@@ -5,13 +5,22 @@
 # COPYING.md.
 #
 # Photo conversion for the fixture tools: crop to the sticker's shape,
-# resize to 256x240, quantize to RGB555 with the reserved UI slots. This is a
-# stand-in for the web app's pipeline (docs/PLAN.md, Phase 4), good enough to
-# put real photos on the cart for testing. Requires Pillow.
+# resize to 256x240, quantize to RGB555 around the reserved slots, and render
+# the 3x3 grid pages. This is a stand-in for the web app's pipeline
+# (docs/PLAN.md, Phase 4), good enough to put real photos on the cart for
+# testing. Requires Pillow.
 
-from PIL import Image as PILImage, ImageOps
+import os
+
+from PIL import Image as PILImage, ImageDraw, ImageFont, ImageOps
 
 import lpcpack
+
+CART = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FONT_PATH = os.path.join(CART, "assets", "font", "HomeVideo-Regular.ttf")
+FONT_SIZE = 20       # Home Video's native pixel size (tools/mkfont.py)
+FONT_TOP = 2         # first inked row below the draw origin
+FONT_ADVANCE = 12
 
 # Placeholder until the Phase 3 hardware test measures the printed sticker
 # (docs/PLAN.md section 8, STICKER_ASPECT).
@@ -20,6 +29,18 @@ STICKER_ASPECT = 4 / 3
 # Slot 0 is black (it doubles as the backdrop) and 248..255 are the UI's, so a
 # photo gets slots 1..247.
 PHOTO_COLOURS = lpcpack.UI_FIRST - 1
+
+# Grid page layout (docs/pack-format.md, PageEntry). Thumbnails are exactly a
+# quarter of a photo; 16 px gaps across, and a header row above.
+THUMB_W, THUMB_H = 64, 60
+CELL_XS = (16, 96, 176)
+CELL_YS = (34, 100, 166)
+HEADER_Y = 14
+HEADER_X = 16
+HEADER_RIGHT = 240
+TITLE_MAX_CHARS = 14
+
+UI_BLACK, UI_BG, UI_PANEL, UI_DIM, UI_GREY, UI_WHITE, UI_ACCENT, UI_HIGHLIGHT = range(248, 256)
 
 
 def _expand5(v5):
@@ -33,8 +54,8 @@ def _posterize_lut():
     return lut * 3
 
 
-def crop_fill(img, portrait):
-    """Centre-crop to the sticker's shape and resize to the stored size."""
+def crop_upright(img, portrait):
+    """Centre-crop to the sticker's shape and resize, still upright."""
     aspect = 1 / STICKER_ASPECT if portrait else STICKER_ASPECT
     w, h = img.size
     if w / h > aspect:
@@ -44,15 +65,11 @@ def crop_fill(img, portrait):
         ch = round(w / aspect)
         box = (0, (h - ch) // 2, w, (h - ch) // 2 + ch)
     size = (lpcpack.IMAGE_H, lpcpack.IMAGE_W) if portrait else (lpcpack.IMAGE_W, lpcpack.IMAGE_H)
-    img = img.crop(box).resize(size, PILImage.Resampling.LANCZOS, reducing_gap=3.0)
-    if portrait:
-        # 90 degrees clockwise: the upright 240x256 picture becomes 256x240.
-        img = img.transpose(PILImage.Transpose.ROTATE_270)
-    return img
+    return img.crop(box).resize(size, PILImage.Resampling.LANCZOS, reducing_gap=3.0)
 
 
 def quantize(img, dither=True):
-    """RGB image (256x240) -> lpcpack.Image."""
+    """RGB image (256x240) -> lpcpack.Image using slots 1..247 only."""
     post = img.convert("RGB").point(_posterize_lut())
     first = post.quantize(colors=PHOTO_COLOURS, method=PILImage.Quantize.MEDIANCUT,
                           dither=PILImage.Dither.NONE)
@@ -81,12 +98,73 @@ def quantize(img, dither=True):
 
 
 def load_photo(path, dither=True):
-    """A photo file -> lpcpack.Photo, filling the sticker."""
+    """A photo file -> (lpcpack.Photo, upright sticker crop as RGB)."""
     with PILImage.open(path) as im:
         img = ImageOps.exif_transpose(im).convert("RGB")
     portrait = img.height > img.width
-    img = crop_fill(img, portrait)
-    return lpcpack.Photo(
-        image=quantize(img, dither),
+    upright = crop_upright(img, portrait)
+    # Portrait photos are stored 90 degrees clockwise: 240x256 -> 256x240.
+    stored = upright.transpose(PILImage.Transpose.ROTATE_270) if portrait else upright
+    photo = lpcpack.Photo(
+        image=quantize(stored, dither),
         orientation=lpcpack.ORIENT_PORTRAIT if portrait else lpcpack.ORIENT_LANDSCAPE,
     )
+    return photo, upright
+
+
+def thumbnail(upright):
+    """Fill a 64x60 cell from an upright sticker crop."""
+    return ImageOps.fit(upright, (THUMB_W, THUMB_H), PILImage.Resampling.LANCZOS)
+
+
+def _draw_text(pixels, x, y, text, colour):
+    font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
+    mask = PILImage.new("1", (lpcpack.IMAGE_W, lpcpack.IMAGE_H), 0)
+    d = ImageDraw.Draw(mask)
+    d.fontmode = "1"
+    d.text((x, y - FONT_TOP), text, font=font, fill=1)
+    for i, on in enumerate(mask.getdata()):
+        if on:
+            pixels[i] = colour
+
+
+def render_pages(thumbs, title, dither=False):
+    """Upright thumbnails (in photo order) -> [lpcpack.Page].
+
+    Not dithered by default: nine photos share one palette, and at 64x60
+    error diffusion leaves white specks in skies and night shots; flat
+    mapping looks cleaner at thumbnail size."""
+    per_page = lpcpack.CELLS_PER_PAGE
+    page_count = -(-len(thumbs) // per_page)
+    title = title.upper()[:TITLE_MAX_CHARS]
+    pages = []
+
+    for p in range(page_count):
+        chunk = thumbs[p * per_page:(p + 1) * per_page]
+        cells = [(CELL_XS[i % 3], CELL_YS[i // 3], THUMB_W, THUMB_H) for i in range(len(chunk))]
+
+        canvas = PILImage.new("RGB", (lpcpack.IMAGE_W, lpcpack.IMAGE_H), (0, 0, 0))
+        for thumb, (x, y, _w, _h) in zip(chunk, cells):
+            canvas.paste(thumb, (x, y))
+        image = quantize(canvas, dither)
+
+        # Everything outside the thumbnails is UI: background, then header.
+        pixels = bytearray(image.pixels)
+        inside = bytearray(lpcpack.IMAGE_W * lpcpack.IMAGE_H)
+        for x, y, w, h in cells:
+            for row in range(y, y + h):
+                inside[row * lpcpack.IMAGE_W + x:row * lpcpack.IMAGE_W + x + w] = b"\1" * w
+        for i, flag in enumerate(inside):
+            if not flag:
+                pixels[i] = UI_BG
+
+        _draw_text(pixels, HEADER_X, HEADER_Y, title, UI_ACCENT)
+        counter = f"{p + 1}/{page_count}"
+        _draw_text(pixels, HEADER_RIGHT - FONT_ADVANCE * len(counter), HEADER_Y, counter, UI_GREY)
+
+        pages.append(lpcpack.Page(
+            image=lpcpack.Image(palette=image.palette, pixels=bytes(pixels)),
+            first_photo=p * per_page,
+            cells=cells,
+        ))
+    return pages

@@ -140,7 +140,7 @@ static void OsdHide(void)
 	LP_FbChanged();
 }
 
-void LPC_ViewerRun(unsigned index)
+unsigned LPC_ViewerRun(unsigned index, int can_return)
 {
 	unsigned count = LPC_PackPhotoCount();
 
@@ -150,7 +150,9 @@ void LPC_ViewerRun(unsigned index)
 	for (;;) {
 		uint16_t edges = LP_PadEdges();
 
-		if (edges & (GAMEPAD_BTN_LEFT | GAMEPAD_BTN_LTRIG)) {
+		if (can_return && (edges & GAMEPAD_BTN_B)) {
+			return index;
+		} else if (edges & (GAMEPAD_BTN_LEFT | GAMEPAD_BTN_LTRIG)) {
 			index = index ? index - 1 : count - 1;
 			ShowPhoto(index);
 			OsdShow(index, count);

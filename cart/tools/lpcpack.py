@@ -38,6 +38,9 @@ MAX_PHOTOS = 54
 GRID_COLS = 3
 GRID_ROWS = 3
 CELLS_PER_PAGE = GRID_COLS * GRID_ROWS
+THUMB_W = 64
+THUMB_H = 60
+CURSOR_RING = 4  # the cart's cursor extends this far outside a thumbnail
 
 ORIENT_LANDSCAPE = 0
 ORIENT_PORTRAIT = 1  # stored rotated 90 degrees clockwise
@@ -129,10 +132,14 @@ def encode_pack(photos, pages=(), meta=None):
             _check_palette(p.print_palette, f"photo {i} print palette")
     for i, pg in enumerate(pages):
         _check_image(pg.image, f"page {i}")
-        if not 1 <= len(pg.cells) <= CELLS_PER_PAGE:
-            raise PackError(f"page {i}: {len(pg.cells)} cells")
-        if pg.first_photo + len(pg.cells) > len(photos):
-            raise PackError(f"page {i}: cells run past the last photo")
+        expected = min(CELLS_PER_PAGE, len(photos) - i * CELLS_PER_PAGE)
+        if pg.first_photo != i * CELLS_PER_PAGE or len(pg.cells) != expected:
+            raise PackError(f"page {i}: must hold photos {i * CELLS_PER_PAGE}.. in {expected} cells")
+        for x, y, w, h in pg.cells:
+            if (w, h) != (THUMB_W, THUMB_H) or x < CURSOR_RING or y < CURSOR_RING \
+                    or x + w + CURSOR_RING > IMAGE_W or y + h + CURSOR_RING > IMAGE_H:
+                raise PackError(f"page {i}: cell {(x, y, w, h)} is not a 64x60 thumbnail "
+                                "with room for the cursor ring")
 
     meta_bytes = b""
     for key, value in meta.items():

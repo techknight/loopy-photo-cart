@@ -32,6 +32,8 @@ def main():
     ap.add_argument("--count", type=int, default=lpcpack.MAX_PHOTOS,
                     help="use at most this many photos")
     ap.add_argument("--no-dither", action="store_true")
+    ap.add_argument("--no-grid", action="store_true",
+                    help="leave out the grid pages (the cart opens the viewer directly)")
     ap.add_argument("--title", default="Fixture")
     args = ap.parse_args()
 
@@ -41,14 +43,16 @@ def main():
         paths.extend(matches if matches else [pattern])
     paths = paths[:args.count]
 
-    photos = []
+    photos, thumbs = [], []
     for path in paths:
-        photo = lpcimage.load_photo(path, dither=not args.no_dither)
+        photo, upright = lpcimage.load_photo(path, dither=not args.no_dither)
         kind = "portrait" if photo.orientation else "landscape"
         print(f"  {os.path.basename(path)}: {kind}")
         photos.append(photo)
+        thumbs.append(lpcimage.thumbnail(upright))
 
-    pack = lpcpack.encode_pack(photos, meta={"title": args.title, "tool": "mkfixture"})
+    pages = [] if args.no_grid else lpcimage.render_pages(thumbs, args.title)
+    pack = lpcpack.encode_pack(photos, pages, meta={"title": args.title, "tool": "mkfixture"})
     with open(args.template, "rb") as f:
         template = f.read()
     rom = lpcpack.patch_rom(template, pack)
@@ -56,7 +60,8 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, "wb") as f:
         f.write(rom)
-    print(f"{len(photos)} photos, pack {len(pack)} bytes, ROM {len(rom)} bytes -> {args.out}")
+    print(f"{len(photos)} photos, {len(pages)} grid pages, pack {len(pack)} bytes, "
+          f"ROM {len(rom)} bytes -> {args.out}")
 
 
 if __name__ == "__main__":
