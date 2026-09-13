@@ -228,9 +228,11 @@ loopy-photo-cart/
 │  ├─ public/template/     template.bin (copied from cart build)
 │  └─ test/                Vitest unit + golden tests
 ├─ cli/                    `node cli build demo/manifest.json -o demo.bin` (reuses web/src/core)
-├─ sample-photos/          demo cat photos (personal metadata already stripped)
+├─ sample-photos/          full-size originals (git-ignored, maintainer only)
 ├─ demo/
-│  ├─ manifest.json        order, crops, dither, title (refers to ../sample-photos)
+│  ├─ prepare_photos.py    originals → upright, sRGB, ≤1600 px, metadata-free
+│  ├─ photos/              the cleaned demo photos (committed)
+│  ├─ manifest.json        order, crops, dither, title
 │  └─ README.md
 ├─ docs/
 │  ├─ PLAN.md  pack-format.md  hardware-notes.md  testing.md
@@ -289,9 +291,27 @@ loopy-photo-cart/
 ### Phase 4 — Web app MVP
 - Vite + TS. Add photos (file picker, drag & drop, multi-select), reorder,
   delete.
-- Decode with `createImageBitmap(file, {imageOrientation: 'from-image'})` so
-  EXIF rotation is respected. HEIC only works where the browser supports it,
-  so show a friendly message otherwise.
+- **Accept photos straight off a phone, with no preparation by the user.** The
+  app does in the browser what `demo/prepare_photos.py` does for the demo:
+  - *Orientation:* decode with `createImageBitmap(file, {imageOrientation: 'from-image'})`.
+  - *Colour:* the default `colorSpaceConversion` turns Display P3 or Adobe RGB
+    into sRGB.
+  - *Size:* 12–50 MP photos are decoded one at a time in the worker and
+    immediately reduced to a working copy of 1600 px or less
+    (`resizeWidth/Height`, `resizeQuality: 'high'`, with an OffscreenCanvas
+    step-down fallback where those options aren't supported). The full-size
+    bitmap is closed right away. Only the working copy and the original `File`
+    handle (for re-cropping) are kept, so 54 huge photos stay within a few
+    hundred MB.
+  - *Metadata:* nothing to strip. Only quantized pixels go into the ROM, so
+    EXIF and GPS data can never reach it. A test checks that the same pixels
+    with and without metadata produce an identical ROM.
+  - *Formats:* JPEG, PNG, WebP and AVIF in every current browser; HEIC natively
+    in Safari. iPhones usually convert to JPEG when a browser picks from
+    Photos. Elsewhere HEIC gets a clear message, and a lazy-loaded WASM HEIC
+    decoder (e.g. libheif-js, LGPL, GPL-compatible) is a Phase 5 option.
+  - *Failures* (corrupt file, CMYK JPEG, an out-of-memory decode) are reported
+    per photo and never abort the batch.
 - Per-photo crop editor: fixed target aspect, pan/zoom, with "fill" or "fit
   with border" (border colour selectable).
 - In a Web Worker:
@@ -324,8 +344,8 @@ loopy-photo-cart/
 - Service worker for offline use.
 
 ### Phase 6 — Demo ROM and publishing
-- `demo/manifest.json` over the cat photos in `sample-photos/` (personal
-  metadata already stripped).
+- `demo/manifest.json` over `demo/photos/`, which `demo/prepare_photos.py`
+  produces from the git-ignored originals.
 - `cli/` builds the demo ROM from the same TS core in CI. Output is
   deterministic, because decode goes through `sharp` → raw RGBA and everything
   after that is pure TS.
@@ -385,8 +405,10 @@ loopy-photo-cart/
    - Third-party code must be GPL-2-compatible. MIT, BSD and zlib are fine
      (e.g. `image-q` is MIT). Apache-2.0 is **not** compatible
      with GPL-2.0-only, but it is with "or later" via GPLv3; still, avoid it.
-7. **Demo photo privacy.** Phone photos carry GPS in EXIF, so strip it before
-   committing. The tool itself never embeds metadata in ROMs.
+7. **Demo photo privacy: handled.** Originals stay git-ignored in
+   `sample-photos/`. Only `demo/prepare_photos.py` output is committed, and
+   that script fails if any metadata survives. The tool itself never embeds
+   metadata in ROMs.
 8. **Overscan.** 240p on real TVs crops edges. Photos can go edge to edge, but
    grid UI, cursor and dialogs stay inside a ~16 px safe margin.
 
