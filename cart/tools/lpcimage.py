@@ -49,7 +49,9 @@ HEADER_TITLE = "PHOTOS"
 # x = 88) and the page counter (which starts at x = 204 for "6/6").
 CONTROLS_X = 100
 CONTROLS_YS = (13, 22)
-CONTROLS = ("A:VIEW", "L/R:PAGE")
+# Public Pixel has real lowercase, so the hints are mixed case. L/R paging
+# is left to the help popover D opens (docs/PLAN.md, Phase 5).
+CONTROLS = ("A: View", "D: Show Help")
 
 UI_BLACK, UI_BG, UI_PANEL, UI_DIM, UI_GREY, UI_WHITE, UI_ACCENT, UI_HIGHLIGHT = range(248, 256)
 

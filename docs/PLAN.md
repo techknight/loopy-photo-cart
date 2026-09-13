@@ -244,6 +244,7 @@ image), then grid page 1.
 | L / R | Previous / next page (cursor keeps its cell, clamped on the last page) |
 | A | Open the photo full screen |
 | Start | Print the highlighted photo (confirm dialog) |
+| D | Show the help popover (planned, Phase 5) |
 
 **Full-screen viewer**
 
@@ -363,7 +364,7 @@ loopy-photo-cart/
 ### Phase 2 — Grid and cursor ✅ in LoopyMSE (2026-09-13); hardware 60 fps check pending
 - Grid pages are pre-rendered 256×240 images (`cart/tools/lpcimage.py`):
   - a header at y = 14: "PHOTOS" and "page/pages" in Home Video Font, with
-    control hints ("A:VIEW", "L/R:PAGE") between them in Public Pixel Font
+    mixed-case control hints ("A: View", "D: Show Help") between them in Public Pixel Font
     (GGBotNet, CC0, <https://ggbot.itch.io/public-pixel-font>);
   - 3×3 64×60 thumbnails at x = 16/96/176, y = 34/100/166;
   - UI-slot background;
@@ -488,6 +489,11 @@ loopy-photo-cart/
 - **Exit:** a ROM built in the browser boots in LoopyMSE and prints.
 
 ### Phase 5 — Quality and polish
+- **Help popover on D** (the grid header already hints "D: Show Help"): a
+  panel over the current screen listing every control, the website, and the
+  copyright notice. Dismissed with D or B. Home Video Font for the heading
+  and Public Pixel Font for the body; UI slots only, so it works over any
+  page or photo.
 - Print-palette tuning (after looking at real stickers), title and splash
   customization, optional captions baked into page composites.
 - Fast paths: cache the neighbouring decoded photo in RAM so prev/next is
