@@ -5,6 +5,8 @@ full screen, and print any of them on the Loopy's sticker printer.
 
 Everything runs locally in your browser. Your photos are never uploaded.
 
+**Make your own cartridge at <https://loopyphotocart.com>.**
+
 ## On the Loopy
 
 - **Grid:** pages of 3×3 thumbnails.
@@ -18,8 +20,9 @@ Everything runs locally in your browser. Your photos are never uploaded.
   - B goes back to the grid.
 - **Stickers:** every photo fills the sticker. Portrait photos print as
   portrait stickers.
-- **Music and help:** Burgmüller's *La Candeur* plays in the background.
-  C pauses it, and D shows help.
+- **Music and help:** Burgmüller's *La Candeur* and Clementi's Sonatina
+  Op. 36 No. 1 play in turn in the background. C pauses the music, and D
+  shows help.
 - **Capacity:** up to 54 photos in a 4 MB ROM, for the Floopy Drive.
 
 ## Repository
@@ -41,8 +44,10 @@ Everything runs locally in your browser. Your photos are never uploaded.
 - **Web app:** working. Run `cd web && npm install && npm run dev`; see
   `docs/web.md`.
 - **Demo ROM:** `cd web && npm run demo` builds it reproducibly.
-- **Hosting and releases:** GitHub Pages and tagged releases are set up as
-  workflows, waiting for the repo to go public.
+- **Hosting:** the web app deploys to <https://loopyphotocart.com> (GitHub
+  Pages) on every push to `main`.
+- **Releases:** pushing a `v*` tag publishes the template, the demo ROM and
+  the site.
 
 ## Licence
 

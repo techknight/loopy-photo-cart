@@ -428,9 +428,11 @@ loopy-photo-cart/
   - **Pending:** a listen on hardware (preset choice, loudness, effects over
     the music).
   - **Hardware result (2026-09-13):** music and effects were "flawless", but
-    Gymnopédie was too melancholy. The default is now Burgmüller's *La
-    Candeur* (Mutopia #202). *La Pastorale*, Clementi's Sonatina Op. 36 No. 1
-    and Gymnopédie stay selectable with `-DLPC_MUSIC_*`. L/R in the viewer
+    Gymnopédie was too melancholy. The music is now a playlist: Burgmüller's
+    *La Candeur* (Mutopia #202), then Clementi's Sonatina Op. 36 No. 1
+    (#804), repeating. Both are baked without looping, and `LP_SoundFrame()`
+    starts the next song after a short gap. *La Pastorale* and Gymnopédie,
+    or either playlist song alone, stay selectable with `-DLPC_MUSIC_*`. L/R in the viewer
     now make the d-pad tick, since they step one photo.
 
 ### Phase 3 — Printing
@@ -608,11 +610,13 @@ loopy-photo-cart/
       `web.yml` tests, builds, smoke-tests and deploys Pages on `main`, and
       `release.yml` publishes the template, demo ROM and site zip on a `v*`
       tag.
-  - The workflows are pushed and run on every push to `main`. The Pages
-    deploy job skips itself while the repository is private.
-  - **Waiting on the user:**
-    - making the repository public, then setting Pages to "GitHub Actions";
-    - tagging the first release (`v*`).
+  - The workflows are pushed and run on every push to `main`.
+  - Pages is set to "GitHub Actions" with the custom domain
+    **loopyphotocart.com** (user, 2026-09-13; HTTPS certificate approved).
+    Pages works on the private repository, so `web.yml` deploys on every push
+    to `main`. The cart's help popover shows the domain.
+  - **Waiting on the user:** tagging the first release (`v*`), and making the
+    repository public when ready.
 
 ---
 

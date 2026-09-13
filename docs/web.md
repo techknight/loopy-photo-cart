@@ -69,6 +69,12 @@ fails on any page error or any request outside the site's own origin.
 
 ## Deploying to GitHub Pages
 
+The site is live at <https://loopyphotocart.com>. Pages is set to "GitHub
+Actions" with that custom domain in the repository settings, and
+`.github/workflows/web.yml` deploys every push to `main` once the tests and
+smoke test pass. With an Actions deployment the domain is set in the
+settings, not in a CNAME file.
+
 The build uses a relative base (`./`), so `dist/` works from any path. To
 publish from GitHub Actions, run `npm ci && npm run build` in `web/` and
 upload `web/dist` with `actions/upload-pages-artifact`. Set `BASE_PATH` only

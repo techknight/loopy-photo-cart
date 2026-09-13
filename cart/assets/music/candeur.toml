@@ -8,7 +8,9 @@
 # Program 1 is the ROM's piano-like preset (not layered).
 
 name = "candeur"
-loop = true
+# Not looped: the cart plays it, then Clementi, then repeats both
+# (platform/lp_sound.c).
+loop = false
 
 [chan_map]
 0 = [0, 1]

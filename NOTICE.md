@@ -46,12 +46,14 @@ v1.0 Universal.
 
 ## Music (public domain)
 
-The background music is J. F. F. Burgmüller's *La Candeur*, Op. 100 No. 1,
-from [Mutopia Project](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=202)
-edition #202. Three alternatives are kept for auditioning:
-- Burgmüller's *La Pastorale* (#218);
-- Clementi's Sonatina Op. 36 No. 1 (#804);
-- Satie's *Gymnopédie No. 1* (#37).
+The background music plays two pieces in turn, both from the Mutopia Project:
+- J. F. F. Burgmüller's *La Candeur*, Op. 100 No. 1
+  ([edition #202](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=202));
+- Muzio Clementi's Sonatina Op. 36 No. 1, first movement
+  ([edition #804](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=804)).
+
+Two more are kept for auditioning: Burgmüller's *La Pastorale* (#218) and
+Satie's *Gymnopédie No. 1* (#37).
 
 Every one of these compositions is in the public domain, and each edition was
 placed in the public domain by its typesetter. The sources, and the steps that

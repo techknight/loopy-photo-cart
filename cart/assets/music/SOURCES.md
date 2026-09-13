@@ -18,13 +18,15 @@ it.
 | Clementi Op. 36 No. 1, Allegro | `lps_song_clementi` | 58 s | 333 | 2.7 KB | ch0 2/6, ch1 1/4 | 27 bytes/s, high-water 13/63, no drops |
 | Gymnopédie No. 1 | `lps_song_gymnopedie` | 141 s | 282 | 2.3 KB | ch0 5/6, ch1 4/4, ch3 1/4 | 9 bytes/s, high-water 30/63, no drops |
 
-**La Candeur is the cart's music** (`cart/platform/lp_sound.c`). It replaced
-Gymnopédie after the hardware test asked for something upbeat and subtle. The
-others stay for auditioning: build with
-`EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE`, `-DLPC_MUSIC_CLEMENTI` or
-`-DLPC_MUSIC_GYMNOPEDIE`.
+**The cart plays La Candeur, then Clementi, then repeats**
+(`cart/platform/lp_sound.c`), with a short breath between songs. This
+replaced Gymnopédie after the hardware test asked for something upbeat and
+subtle. Those two are baked without looping (`loop = false` in their TOML) so
+the playlist can move on. The others still loop and stay for auditioning:
+build with `EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE`, `-DLPC_MUSIC_CLEMENTI` or
+`-DLPC_MUSIC_GYMNOPEDIE` to hear one song on its own.
 
-All four use program 1, the ROM's piano-like preset, and loop. Every piece
+All four use program 1, the ROM's piano-like preset. Every piece
 starts on its first note, with no silence. Console channel 2 is left free for
 the sound effects.
 

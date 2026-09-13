@@ -25,6 +25,10 @@ void LP_SoundInit(void);
 // Called from the ITU1 handler every tick.
 void LP_SoundTick(void);
 
+// Called once a frame from the main line (LP_VideoPresent does it): moves the
+// playlist on when a song ends.
+void LP_SoundFrame(void);
+
 // Release every sounding note and hold new ones back (around a blocking
 // print), then carry on.
 void LP_SoundSuspend(void);

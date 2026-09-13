@@ -52,16 +52,16 @@ jobs:
           python ../cart/tools/lpcvalidate.py smoke-out/smoke.bin
 
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           path: web/dist
 
-  # Publishing needs Pages enabled for the repository ("GitHub Actions" as the
-  # source). Pages on a private repository requires a paid plan, so the job
-  # only runs once the repository is public.
+  # Publishes https://loopyphotocart.com: Pages is set to "GitHub Actions" with
+  # that custom domain in the repository settings. The build uses a relative
+  # base, so it works at the domain root.
   deploy:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write

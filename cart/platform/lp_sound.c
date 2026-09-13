@@ -13,7 +13,7 @@
 //
 // The driver owns the synth (channel plan, MIDI queue, sequencer, effects);
 // this file brings it up, feeds it time from our ITU1 tick
-// (use_internal_clock = 0) and holds the two effects.
+// (use_internal_clock = 0), holds the two effects, and runs the playlist.
 //
 // Channel plan: music on console channels 0, 1 and 3; effects alone on
 // channel 2, so an effect never cuts a music note. An effect starts with a
@@ -26,22 +26,33 @@
 
 #include "lps.h"
 
-// The background music. La Candeur is the default; the others are kept for
-// auditioning (build with EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE, _CLEMENTI or
-// _GYMNOPEDIE). All are public domain; see assets/music/SOURCES.md.
+// The background music: a playlist of public-domain pieces (see
+// assets/music/SOURCES.md). By default La Candeur, then Clementi's Sonatina
+// Op. 36 No. 1, then round again; both are baked without looping so the
+// playlist can move on. A single song can be auditioned instead with
+// EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE, _CLEMENTI or _GYMNOPEDIE.
 #if defined(LPC_MUSIC_PASTORALE)
 #include "music_pastorale.h"
-#define SONG lps_song_pastorale
+static const lps_song_t *const playlist[] = { &lps_song_pastorale };
 #elif defined(LPC_MUSIC_CLEMENTI)
 #include "music_clementi.h"
-#define SONG lps_song_clementi
+static const lps_song_t *const playlist[] = { &lps_song_clementi };
 #elif defined(LPC_MUSIC_GYMNOPEDIE)
 #include "music_gymnopedie.h"
-#define SONG lps_song_gymnopedie
+static const lps_song_t *const playlist[] = { &lps_song_gymnopedie };
 #else
 #include "music_candeur.h"
-#define SONG lps_song_candeur
+#include "music_clementi.h"
+static const lps_song_t *const playlist[] = {
+	&lps_song_candeur,
+	&lps_song_clementi,
+};
 #endif
+
+#define PLAYLIST_SONGS (sizeof playlist / sizeof playlist[0])
+
+// A breath between one song ending and the next starting, in frames.
+#define SONG_GAP_FRAMES 45
 
 #define MUSIC_CHANNELS  0x0B
 #define EFFECT_CHANNELS 0x04
@@ -74,7 +85,10 @@ static const lps_sfxbank_t sfx_bank = {
 };
 
 static uint8_t sound_up;
-static uint8_t music_on;
+static uint8_t music_on;   // C toggles it
+static uint8_t suspended;  // around a print
+static uint8_t song;       // index into playlist
+static uint8_t gap_frames;
 
 void LP_SoundInit(void)
 {
@@ -90,7 +104,8 @@ void LP_SoundInit(void)
 	sound_up = 1;
 
 	LPS_SfxSetBank(&sfx_bank);
-	LPS_MusicPlay(&SONG);
+	song = 0;
+	LPS_MusicPlay(playlist[song]);
 	music_on = 1;
 }
 
@@ -102,10 +117,26 @@ void LP_SoundTick(void)
 		LPS_Tick(LP_CLOCK_TICK_MS);
 }
 
+// Once a frame, from the main line (LP_VideoPresent): starting a song is not
+// something to do from the tick interrupt.
+void LP_SoundFrame(void)
+{
+	// LPS_MusicPlaying() is also false while paused, so a paused or
+	// suspended song must not count as finished.
+	if (!sound_up || !music_on || suspended || LPS_MusicPlaying())
+		return;
+	if (++gap_frames < SONG_GAP_FRAMES)
+		return;
+	gap_frames = 0;
+	song = (uint8_t) ((song + 1u) % PLAYLIST_SONGS);
+	LPS_MusicPlay(playlist[song]);
+}
+
 void LP_SoundSuspend(void)
 {
 	if (!sound_up)
 		return;
+	suspended = 1;
 	// Pausing releases the song's sounding notes; the tick keeps running
 	// through a print, so the releases get out while the BIOS works.
 	LPS_MusicPause(1);
@@ -114,8 +145,11 @@ void LP_SoundSuspend(void)
 
 void LP_SoundResume(void)
 {
-	if (sound_up && music_on)
+	if (!sound_up)
+		return;
+	if (music_on)
 		LPS_MusicPause(0);
+	suspended = 0;
 }
 
 void LP_SfxPlay(unsigned id)

@@ -133,10 +133,10 @@ static const lps_ev_t lps_song_candeur_evs[] = {
 static const lps_song_t lps_song_candeur = {
 	lps_song_candeur_evs,
 	485, /* events */
-	0, /* loop point */
+	0xFFFF, /* loop point */
 	{ 1, 1, 255, 255 },
 	0x03, /* channels */
-	LPS_SONG_LOOPS,
+	0,
 	0
 };
 

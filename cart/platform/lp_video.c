@@ -28,6 +28,7 @@
 #include "loopy.h"
 
 #include "lp_platform.h"
+#include "lp_sound.h"
 #include "lp_video.h"
 
 // BM_MODE_8BPP_SHARED maps all 128 KB of bitmap VRAM as one 256x512 canvas:
@@ -241,6 +242,10 @@ void LP_VideoPresent(void)
 	int flip = stale_pages > 0;
 	uint32_t sr;
 	unsigned i;
+
+	// Every screen's loop presents once a frame, which makes this the one
+	// place the music playlist is guaranteed to be looked after.
+	LP_SoundFrame();
 
 	// Build into the page the VDP is not scanning out, during active
 	// display; that is the point of having two pages.

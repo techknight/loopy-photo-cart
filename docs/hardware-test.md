@@ -29,17 +29,7 @@
 | Stickers now show the whole photo, and a circle prints round (`calibration.bin` chart 1) | `cart\build\calibration.bin` |
 | Photos in the viewer have black bars above and below (landscape) or at the sides (portrait) and look right | `cart\build\fixture-demo.bin` |
 | The print result goes away by itself | any |
-| Pick the music: *La Candeur* (default), *La Pastorale*, Clementi Op. 36 No. 1, or Gymnopédie | `cart\build\music-candeur.bin`, `music-pastorale.bin`, `music-clementi.bin`, `music-gymnopedie.bin` |
-
-Build the music ROMs with:
-
-```
-cart\scripts\build.ps1 EXTRA_CFLAGS=-DLPC_MUSIC_PASTORALE
-python cart\tools\mkfixture.py --out cart\build\music-pastorale.bin demo\photos\*.jpg
-```
-
-Use `_CLEMENTI` or `_GYMNOPEDIE` for the other songs, then run
-`cart\scripts\build.ps1` again for the normal template.
+| The music plays *La Candeur* (36 s), then Clementi's Sonatina (58 s), then starts over; C still pauses and resumes it | `cart\build\fixture-demo.bin` |
 
 The checklist below is kept for future sessions.
 

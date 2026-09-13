@@ -76,9 +76,7 @@ void LPC_HelpShow(void)
 	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X, y, "Make your own cartridge:",
 	             LPC_UI_GREY);
 	y += LINE_H;
-	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X, y, LPC_WEBSITE_HOST, LPC_UI_WHITE);
-	y += LINE_H;
-	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X, y, LPC_WEBSITE_PATH, LPC_UI_WHITE);
+	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X, y, LPC_WEBSITE, LPC_UI_HIGHLIGHT);
 
 	y += LINE_H + 8;
 	LPC_TextDraw(LPC_FONT_SMALL, TEXT_X, y, LPC_COPYRIGHT, LPC_UI_DIM);
