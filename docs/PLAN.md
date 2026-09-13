@@ -503,6 +503,10 @@ loopy-photo-cart/
      photos. The photos are data, not a derived work, so they stay the user's.
      Anyone sharing a built ROM satisfies the source requirement by pointing
      to this public repo.
+   - Adapted third-party code gets credited in `NOTICE.md`. The print code
+     reached us via LoopyManiac but comes from LoopyDOOM (ThroatyMumbo,
+     GPL-2.0-or-later). Any boot/build skeleton from Kasami's
+     loopy-homebrew-template keeps its zlib notice.
    - Third-party code must be GPL-2-compatible. MIT, BSD and zlib are fine
      (e.g. `image-q` and `smartcrop.js` are MIT). Apache-2.0 is **not** compatible
      with GPL-2.0-only, but it is with "or later" via GPLv3; still, avoid it.

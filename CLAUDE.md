@@ -21,6 +21,11 @@ See `docs/PLAN.md` for the architecture and milestones.
   sound-effect code directly; don't vendor a library.
 - `G:\LoopySoundlib\loopy-soundlib`: unfinished. Use only its
   `docs/hardware.md` and `docs/instruments.md`, as reference.
-- All of the user's `G:\Loopy*` projects are their own work, GPL-2.0-or-later.
-  Don't raise licence-lineage concerns about code moving between them.
+- The user's own `G:\Loopy*` projects are GPL-2.0-or-later, and code moves
+  freely between them. Two are **not** the user's, so credit them:
+  - `G:\LoopyDoom` (ThroatyMumbo, GPL-2.0-or-later). LoopyManiac's print code
+    comes from it.
+  - LoopyMSE (kasami, GPL-3; only forked). Use facts from it, never code.
+- Kasami's loopy-homebrew-template is zlib; keep its notice wherever the boot
+  or build skeleton is used.
 - `G:\LoopySimCity`: ignore, don't use anything from it.
