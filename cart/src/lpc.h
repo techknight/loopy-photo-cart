@@ -9,7 +9,7 @@
 //
 //
 // Constants shared by the whole cartridge program. The web app mirrors the
-// ROM-layout ones (docs/PLAN.md, docs/pack-format.md).
+// ROM-layout ones (docs/pack-format.md).
 //
 
 #ifndef LPC_H
@@ -36,5 +36,28 @@
 #ifndef LPC_BUILD_ID
 #define LPC_BUILD_ID "dev"
 #endif
+
+// Pack limits (docs/pack-format.md).
+#define LPC_MAX_PHOTOS 54
+#define LPC_GRID_COLS  3
+#define LPC_GRID_ROWS  3
+#define LPC_IMAGE_W    256
+#define LPC_IMAGE_H    240
+
+#define LPC_ORIENT_LANDSCAPE 0
+#define LPC_ORIENT_PORTRAIT  1  // stored rotated 90 degrees clockwise
+
+// Reserved UI palette slots, identical in every palette the pack carries, so
+// UI can be drawn over any image (docs/pack-format.md).
+enum {
+	LPC_UI_BLACK = 248,
+	LPC_UI_BG,
+	LPC_UI_PANEL,
+	LPC_UI_DIM,
+	LPC_UI_GREY,
+	LPC_UI_WHITE,
+	LPC_UI_ACCENT,
+	LPC_UI_HIGHLIGHT,
+};
 
 #endif

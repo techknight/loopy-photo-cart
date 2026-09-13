@@ -152,6 +152,12 @@ void LP_PalSet(unsigned idx, uint16_t rgb555)
 	}
 }
 
+void LP_PalLoad(const uint16_t *palette)
+{
+	memcpy(pal_shadow, palette, sizeof pal_shadow);
+	pal_dirty = 1;
+}
+
 void LP_VideoPresent(void)
 {
 	int flip = stale_pages > 0;

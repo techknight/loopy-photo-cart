@@ -56,6 +56,9 @@ CFLAGS += -Wno-array-bounds
 CFLAGS += -Iinclude -Iplatform -Isrc
 CFLAGS += -DCASIO_LOOPY
 CFLAGS += -DLPC_PACK_OFFSET=$(PACK_OFFSET)ul -DLPC_BUILD_ID=\"$(BUILD_ID)\"
+# Test-only switches, e.g. EXTRA_CFLAGS=-DLPC_OSD_FRAMES=100000.
+EXTRA_CFLAGS ?=
+CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS  = -nostartfiles -Wl,--gc-sections -Wl,--no-warn-rwx-segment
 # A stray section silently vanishing is a very expensive bug on a machine with
@@ -76,7 +79,7 @@ all: $(ROM) $(ROMSWP)
 
 # make can't see changes to variables: stamp the ones that change the output
 # into a sentinel every object depends on. Its mtime only moves when they do.
-FLAGSIG := BUILD_ID=$(BUILD_ID) PACK_OFFSET=$(PACK_OFFSET) SRAMSIZE=$(SRAMSIZE) STACKSIZE=$(STACKSIZE)
+FLAGSIG := BUILD_ID=$(BUILD_ID) PACK_OFFSET=$(PACK_OFFSET) SRAMSIZE=$(SRAMSIZE) STACKSIZE=$(STACKSIZE) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
 force:
 $(OBJDIR)/.flags: force
 	@mkdir -p $(OBJDIR)

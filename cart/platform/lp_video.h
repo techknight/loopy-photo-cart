@@ -42,6 +42,9 @@ void LP_FbChanged(void);
 // and shows the backdrop, which is kept equal to entry 0.
 void LP_PalSet(unsigned idx, uint16_t rgb555);
 
+// Stage all 256 entries at once (e.g. a photo's palette, straight from ROM).
+void LP_PalLoad(const uint16_t *palette);
+
 // Show the framebuffer. Blits only while a page is stale, so a still screen
 // costs one vsync a frame; always waits for the next vertical blank.
 void LP_VideoPresent(void);
