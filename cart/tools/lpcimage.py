@@ -147,8 +147,21 @@ def _draw_text(pixels, x, y, text, colour):
 
 
 def _draw_small_text(pixels, x, y, text, colour):
-    """Public Pixel Font; (x, y) is the top-left of the ink."""
-    _draw_font(pixels, SMALL_FONT_PATH, SMALL_FONT_SIZE, SMALL_FONT_TOP, x, y, text, colour)
+    """Public Pixel Font; (x, y) is the top-left of the ink.
+
+    Drawn a character at a time so spacing can differ from the monospaced
+    cell: a space after a colon ("A: View") is half a cell, since a full
+    8 px gap reads as too wide there."""
+    prev = ""
+    for ch in text:
+        if ch == " " and prev == ":":
+            x += SMALL_FONT_ADVANCE // 2
+        else:
+            if ch != " ":
+                _draw_font(pixels, SMALL_FONT_PATH, SMALL_FONT_SIZE, SMALL_FONT_TOP,
+                           x, y, ch, colour)
+            x += SMALL_FONT_ADVANCE
+        prev = ch
 
 
 def render_pages(thumbs, dither=False):
