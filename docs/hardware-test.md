@@ -1,0 +1,81 @@
+# Hardware test session
+
+Everything below has been checked in LoopyMSE. These are the things only a
+real Loopy, Floopy Drive and sticker cassette can confirm. Stickers cost
+money, so the printing tests are batched into one sitting.
+
+## ROMs to load
+
+Build the template and ROMs first (`cart\README.md`):
+
+```
+cart\scripts\build.ps1
+python cart\tools\mkfixture.py --out cart\build\fixture-demo.bin demo\photos\*.jpg
+python cart\tools\mkcalibration.py
+```
+
+| ROM | What it's for |
+|---|---|
+| `cart\build\fixture-demo.bin` | The 25 demo photos on 3 grid pages: everyday use, sound, printing |
+| `cart\build\calibration.bin` | Two test charts for measuring the printed sticker |
+
+## 1. Printing (about 5 stickers)
+
+Use `fixture-demo.bin` unless noted.
+
+| # | Do this | Expect | Note down |
+|---|---|---|---|
+| 1 | Grid: highlight a landscape photo, press **Start**, then **A** | "PRINT PHOTO?" → "PRINTING..." → a sticker → "PRINTED!" | Does the sticker look like the screen? Colours, brightness |
+| 2 | Viewer: open a **portrait** photo (e.g. the flamingos), press **A** and **A** again | The sticker is the photo turned 90°, filling the sticker lengthwise | Which way is it turned? |
+| 3 | Take the cassette out, press **Start** on the grid, then **A** | "NO CASSETTE", no printing | |
+| 4 | Start a print and cancel it on the console if the Loopy allows | "CANCELLED" (or "PRINT FAILED") | What the console does |
+| 5 | After every print: move the cursor, open photos, turn pages | Controls respond straight away; nothing is stuck; the cursor ring looks right | Any sluggishness, stuck buttons, sprite glitches |
+| 6 | After a print, listen | The music carries on; no note hangs | Stuck or droning notes |
+
+## 2. Sticker shape (2 stickers, `calibration.bin`)
+
+Print both charts: photo 1 (landscape) and photo 2 (portrait). On each sticker,
+measure in millimetres:
+
+| Measure | Chart 1 | Chart 2 |
+|---|---|---|
+| Whole printed image: width × height (edge to edge of the red border) | | |
+| Green horizontal bar length | | |
+| Green vertical bar length | | |
+| Is the blue circle round, or wider than tall / taller than wide? | | |
+| Where does the red "UP" arrow point on the sticker? | | |
+
+What the numbers are for:
+- **Crop box shape:** width ÷ height of chart 1 becomes `STICKER_ASPECT`, the
+  shape the web app's crop box uses (currently a 4:3 guess).
+- **Dot shape:** the horizontal bar ÷ the vertical bar gives the shape of a
+  printer dot. If it isn't 1, photos are resampled to compensate.
+- **Portrait rotation:** chart 2's arrow says whether portrait photos should
+  be rotated the other way.
+
+Also note if any row or column at the edges is cut off: LoopyMSE shows only
+224 of the 241 printed lines, so the bottom of the sticker is unverified.
+
+## 3. Sound
+
+| Check | Note down |
+|---|---|
+| Does the Gymnopédie piano (preset 1) sound pleasant, or harsh or wrong? | If wrong, other presets can be auditioned |
+| Balance: is the music too loud or quiet next to the menu sounds? | |
+| D-pad tick and button chirp: do they sound like menu sounds? Too sharp? | |
+| **C** pauses and resumes the music | |
+| Leave it running 10+ minutes: does the loop restart cleanly with no stuck notes? | |
+
+## 4. Screen
+
+| Check | Note down |
+|---|---|
+| Grid header ("PHOTOS", "A: View / D: Show Help", "1/3") fully visible on the TV? | Anything cut off at the edges |
+| **D** help popover: all text visible and readable? | |
+| Viewer counter ("3/25") appears top right and disappears | |
+| Anything flickers, tears or shows garbage | |
+
+## What to send back
+
+The measurements from section 2, and short notes from sections 1, 3 and 4.
+Photos of the stickers next to a ruler help too.
