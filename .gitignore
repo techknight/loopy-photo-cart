@@ -11,3 +11,6 @@ web/dist/
 
 # Python bytecode
 __pycache__/
+
+# Claude Code local state (agent worktrees live here)
+.claude/
