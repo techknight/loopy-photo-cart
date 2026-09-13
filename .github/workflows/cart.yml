@@ -1,0 +1,59 @@
+name: Cartridge
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cart/**"
+      - ".github/workflows/cart.yml"
+  pull_request:
+    paths:
+      - "cart/**"
+      - ".github/workflows/cart.yml"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python tools
+        run: pip install pillow
+
+      - name: Cache the Wonderful Toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/wonderful
+          key: wonderful-sh-elf-${{ runner.os }}-v1
+
+      - name: Install the Wonderful Toolchain
+        run: bash cart/scripts/setup-toolchain.sh
+
+      - name: Generated tables are current
+        run: python cart/tools/mkfont.py --check
+
+      - name: Build the template ROM
+        run: |
+          make -C cart WONDERFUL_TOOLCHAIN="$HOME/wonderful" BUILD_ID="g${GITHUB_SHA::8}"
+
+      - name: Template fits below the photo pack
+        run: |
+          size=$(stat -c%s cart/build/loopy-photo-cart-template.bin)
+          echo "template: $size bytes"
+          test "$size" -le $((0x40000))
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: loopy-photo-cart-template
+          path: |
+            cart/build/loopy-photo-cart-template.bin
+            cart/build/loopy-photo-cart-template.elf
