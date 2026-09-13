@@ -100,12 +100,16 @@ async function load(id: number, file: Blob, name: string): Promise<void> {
   }
 }
 
-function render(id: number, crop: CropState, dither: boolean): RenderedPhoto {
+// Photos are always dithered: smooth gradients matter more on a photo than the
+// fine grain dithering adds. (Grid pages are not; see core/pages.ts.)
+const PHOTO_DITHER = true;
+
+function render(id: number, crop: CropState): RenderedPhoto {
   const entry = photos.get(id);
   if (!entry) throw new Error("That photo is no longer loaded.");
-  const key = JSON.stringify([crop, dither]);
+  const key = JSON.stringify(crop);
   if (entry.key !== key || !entry.rendered) {
-    entry.rendered = renderPhoto(source(entry), crop, dither);
+    entry.rendered = renderPhoto(source(entry), crop, PHOTO_DITHER);
     entry.key = key;
   }
   return entry.rendered;
@@ -124,7 +128,7 @@ function flushRenders(): void {
   for (const [id, msg] of pendingRenders) {
     pendingRenders.delete(id);
     if (!photos.has(id)) continue;
-    const r = render(id, msg.crop, msg.dither);
+    const r = render(id, msg.crop);
     const frame = frameCopy(r.photo.image);
     post({ type: "rendered", id, seq: msg.seq, frame, orientation: r.photo.orientation }, [
       frame.palette.buffer,
@@ -135,7 +139,7 @@ function flushRenders(): void {
 
 function renderAll(items: BuildItem[], progress: boolean): RenderedPhoto[] {
   return items.map((item, i) => {
-    const r = render(item.id, item.crop, item.dither);
+    const r = render(item.id, item.crop);
     if (progress) post({ type: "progress", done: i + 1, total: items.length });
     return r;
   });

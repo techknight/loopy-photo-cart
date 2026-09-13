@@ -97,7 +97,7 @@ GitHub plan (docs/PLAN.md §8).
    90° clockwise).
 5. **Quantize:** a deterministic median cut over RGB555 picks colours for
    slots 1–247. Slot 0 is black, and slots 248–255 are the UI colours, which
-   photos never use. Floyd–Steinberg dithering is on by default for photos
+   photos never use. Floyd–Steinberg dithering is always on for photos (there is no setting)
    and off for grid pages.
 6. **Assemble:** 64×60 thumbnails go onto 3×3 grid pages, then the pack is
    built and appended to the template. The ROM is validated before download.

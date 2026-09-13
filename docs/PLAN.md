@@ -488,7 +488,8 @@ loopy-photo-cart/
 - **UI:**
   - add, drag-reorder and remove photos, with an "N / 54" counter;
   - a crop editor (drag, wheel or pinch zoom) with landscape/portrait,
-    fill/whole photo (blurred fill) and dither;
+    fill/whole photo (blurred fill). Photos are always dithered; a dither
+    checkbox was removed at the user's request (2026-09-13);
   - a badge on crops that keep under 60% of the photo;
   - TV, Sticker and Grid previews of the exact bytes;
   - Build ROM, validated before download.
@@ -602,7 +603,7 @@ loopy-photo-cart/
 - Make the repo public at publish time (see §8, Pages on private repos).
 - **Status (2026-09-13):**
   - **Done:**
-    - `demo/manifest.json` with a fixed title, date and dither setting;
+    - `demo/manifest.json` with a fixed title and date;
     - `cd web && npm run demo` builds `demo/build/loopy-photo-cart-demo.bin`
       with the web core, byte-reproducibly (Node's `jpeg-js` decodes; no
       separate `cli/`);

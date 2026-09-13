@@ -33,7 +33,6 @@ interface Item {
   height: number;
   crop?: CropState;
   autoCrop?: CropState;
-  dither: boolean;
   thumb?: ImageBitmap;
 }
 
@@ -74,7 +73,7 @@ function readyItems(): Item[] {
 }
 
 function buildItems(): BuildItem[] {
-  return readyItems().map((i) => ({ id: i.id, crop: i.crop!, dither: i.dither }));
+  return readyItems().map((i) => ({ id: i.id, crop: i.crop! }));
 }
 
 function setStatus(text: string, kind: "" | "error" | "ok" = ""): void {
@@ -91,7 +90,7 @@ function addFiles(files: Iterable<File>): void {
   const room = MAX_PHOTOS - items.length;
   const accepted = list.slice(0, Math.max(0, room));
   for (const file of accepted) {
-    const item: Item = { id: nextId++, name: file.name, status: "loading", width: 0, height: 0, dither: true };
+    const item: Item = { id: nextId++, name: file.name, status: "loading", width: 0, height: 0 };
     items.push(item);
     send({ type: "load", id: item.id, file, name: file.name });
   }
@@ -213,7 +212,7 @@ function scheduleRender(): void {
   renderTimer = window.setTimeout(() => {
     const item = current();
     if (!item || item.status !== "ready") return;
-    send({ type: "render", id: item.id, seq: ++renderSeq, crop: item.crop!, dither: item.dither });
+    send({ type: "render", id: item.id, seq: ++renderSeq, crop: item.crop! });
     invalidatePages();
   }, 120);
 }
@@ -264,12 +263,6 @@ $("fit").addEventListener("click", () => changeCrop((c) => ({ ...c, mode: "fit" 
 $("reset").addEventListener("click", () =>
   changeCrop((_c, item) => item.autoCrop ?? defaultCrop(item.width, item.height)),
 );
-$<HTMLInputElement>("dither").addEventListener("change", (e) => {
-  const item = current();
-  if (!item) return;
-  item.dither = (e.target as HTMLInputElement).checked;
-  scheduleRender();
-});
 
 for (const t of ["tv", "sticker", "grid"] as const) {
   $(`tab-${t}`).addEventListener("click", () => {
@@ -409,7 +402,7 @@ function removeItem(id: number): void {
 function refreshTools(): void {
   const item = current();
   const ready = item?.status === "ready" && item.crop;
-  for (const id of ["landscape", "portrait", "fill", "fit", "reset", "dither"]) {
+  for (const id of ["landscape", "portrait", "fill", "fit", "reset"]) {
     ($(id) as HTMLButtonElement).disabled = !ready;
   }
   $("editor-empty").hidden = Boolean(ready);
@@ -422,7 +415,6 @@ function refreshTools(): void {
   $("portrait").classList.toggle("on", c.orientation === "portrait");
   $("fill").classList.toggle("on", c.mode === "fill");
   $("fit").classList.toggle("on", c.mode === "fit");
-  $<HTMLInputElement>("dither").checked = item.dither;
   const kept = keptFraction(item.width, item.height, c);
   $("kept").textContent = c.mode === "fit" ? "Whole photo" : `Keeps ${Math.round(kept * 100)}% of the photo`;
   $("kept").classList.toggle("warn", kept < LOW_KEPT_FRACTION);

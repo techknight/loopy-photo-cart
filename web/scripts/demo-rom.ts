@@ -10,9 +10,9 @@
 //   node scripts/demo-rom.ts out.bin photo1.jpg photo2.jpg ...
 //   node scripts/demo-rom.ts out.bin --manifest ../demo/manifest.json
 //
-// With a manifest the output is reproducible: its title, date and dither
-// setting are used instead of today's date, and photo paths are relative to
-// the manifest.
+// With a manifest the output is reproducible: its title and date are used
+// instead of today's date, and photo paths are relative to the manifest.
+// Photos are always dithered, as in the web app.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -34,7 +34,6 @@ const WORK_MAX = 1024;
 interface Manifest {
   title?: string;
   created?: string;
-  dither?: boolean;
   photos: string[];
 }
 
@@ -43,7 +42,6 @@ const out = args.shift();
 let paths: string[] = [];
 let title = "Demo";
 let created: string = new Date().toISOString().slice(0, 10);
-let dither = true;
 
 if (args[0] === "--manifest" && args[1]) {
   const manifestPath = resolve(args[1]);
@@ -51,7 +49,6 @@ if (args[0] === "--manifest" && args[1]) {
   paths = manifest.photos.map((p) => resolve(dirname(manifestPath), p));
   title = manifest.title ?? title;
   created = manifest.created ?? created;
-  dither = manifest.dither ?? dither;
 } else {
   paths = args;
 }
@@ -70,7 +67,7 @@ const rendered = paths.map((path) => {
   const orientation = work.height > work.width ? "portrait" : "landscape";
   const crop = defaultCrop(work.width, work.height, suggestFocus(work, stickerAspect(orientation)));
   console.log(`${path}: ${raw.width}x${raw.height}, ${crop.orientation}`);
-  return renderPhoto(work, crop, dither);
+  return renderPhoto(work, crop, true);
 });
 
 const template = new Uint8Array(readFileSync(new URL("../public/template/loopy-photo-cart-template.bin", import.meta.url)));

@@ -8,7 +8,6 @@ import type { CropState } from "../core/crop.ts";
 export interface BuildItem {
   id: number;
   crop: CropState;
-  dither: boolean;
 }
 
 export interface IndexedFrame {
@@ -19,7 +18,7 @@ export interface IndexedFrame {
 export type ToWorker =
   | { type: "load"; id: number; file: Blob; name: string }
   | { type: "remove"; id: number }
-  | { type: "render"; id: number; seq: number; crop: CropState; dither: boolean }
+  | { type: "render"; id: number; seq: number; crop: CropState }
   | { type: "editor"; id: number }
   | { type: "pages"; seq: number; items: BuildItem[] }
   | { type: "build"; items: BuildItem[]; template: ArrayBuffer; created: string };

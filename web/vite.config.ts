@@ -1,7 +1,11 @@
 // Copyright (C) 2026 Derek Quenneville
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vitest/config";
+
+// Shown in the page footer, from package.json.
+const VERSION: string = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version;
 
 // Built pages allow nothing but their own files: no third-party scripts, no
 // network requests except fetching the site's own cartridge template. The
@@ -26,6 +30,12 @@ export default defineConfig({
   build: { target: "es2022" },
   worker: { format: "es" },
   plugins: [
+    {
+      name: "loopy-version",
+      transformIndexHtml(html: string) {
+        return html.replaceAll("<!--APP_VERSION-->", VERSION);
+      },
+    },
     {
       name: "loopy-csp",
       apply: "build",
