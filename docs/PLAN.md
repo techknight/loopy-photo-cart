@@ -603,12 +603,11 @@ loopy-photo-cart/
       `web.yml` tests, builds, smoke-tests and deploys Pages on `main`, and
       `release.yml` publishes the template, demo ROM and site zip on a `v*`
       tag.
-  - **Blocked on the user:**
-    - pushing the workflow files needs the `workflow` scope (run
-      `gh auth refresh -s workflow`);
-    - Pages needs the repository public, or a paid plan, with Pages set to
-      "GitHub Actions";
-    - the first release is a `v*` tag.
+  - The workflows are pushed and run on every push to `main`. The Pages
+    deploy job skips itself while the repository is private.
+  - **Waiting on the user:**
+    - making the repository public, then setting Pages to "GitHub Actions";
+    - tagging the first release (`v*`).
 
 ---
 

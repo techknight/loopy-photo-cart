@@ -52,15 +52,16 @@ jobs:
           python ../cart/tools/lpcvalidate.py smoke-out/smoke.bin
 
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
         with:
           path: web/dist
 
   # Publishing needs Pages enabled for the repository ("GitHub Actions" as the
-  # source). Pages on a private repository requires a paid plan.
+  # source). Pages on a private repository requires a paid plan, so the job
+  # only runs once the repository is public.
   deploy:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
     runs-on: ubuntu-latest
     permissions:
       pages: write
