@@ -67,12 +67,12 @@ File references are to those repos.
 
 ```
 ┌──────────────────────── Browser (GitHub Pages, static) ─────────────────────────┐
-│  UI: add/reorder/crop photos, dither options, live Loopy preview, capacity bar  │
+│  UI: add/reorder/crop photos, dither options, live Loopy preview, photo count   │
 │        │                                                                        │
 │        ▼  (Web Worker)                                                          │
 │  core/ (pure TypeScript, no DOM — shared with the Node CLI)                     │
 │    decode(adapter) → crop → resample (Lanczos/area) → quantize to RGB555        │
-│    → dither → thumbnails → grid page composites → compress → pack encoder       │
+│    → dither → thumbnails → grid page composites → pack encoder                  │
 │    → rompatch (truncate template, append, pad, header, checksum)                │
 │        │                                                                        │
 │        ▼                                                                        │
@@ -83,7 +83,7 @@ File references are to those repos.
 ┌──────────── Cart (SH-1, C, Wonderful sh-elf-gcc 13.1, built in WSL/CI) ─────────┐
 │  boot/ (header, vectors, crt0)    platform/ (video, input, clock, print, sound) │
 │  src/pack.c   validate & index the pack at PACK_BASE                            │
-│  src/codec.c  decompress into RAM (256×240 working buffer)                      │
+│  src/image.c  load photo + palette into RAM for print/blit                      │
 │  src/grid.c   show page composite, cursor on OBJ/BG layer, paging              │
 │  src/viewer.c full-screen photo, prev/next                                      │
 │  src/printui.c confirm → cassette check → "Printing…" → print → result          │
@@ -97,7 +97,7 @@ File references are to those repos.
    runtime scaling and the sticker matches what's on screen.
 2. **Grid pages are pre-rendered by the web app.** Each page is a full
    256×240 composite (thumbnails, header text, page number) with its own
-   palette. The cart shows a page with one decompress and one blit.
+   palette. The cart shows a page with a single blit.
    - The cart never composes thumbnails, so there are no palette clashes
      between photos and no text rendering on the cart.
    - The web app can use any font or language (Unicode titles and captions)
@@ -113,12 +113,13 @@ File references are to those repos.
    Moving it costs a few register writes per frame, not a blit, which gives a
    locked 60 fps grid (PB's approach: shadow copies in RAM, written during
    vblank). A prototype picks OBJ or BG, since the OBJ layer is limited to
-   about 128 sprite pixels per scanline and a frame about 60 px wide fits.
-5. **Compression is per image, with a codec byte** (0 = raw, 1 = LZ4 block).
-   The web app keeps whichever encoding is smaller. The on-cart LZ4 decoder is
-   about 100 lines of C placed in RAM with `LP_RAMFUNC`. Floyd–Steinberg
-   dithering compresses poorly and ordered dithering compresses well, so the
-   capacity bar updates live as the user changes dither mode.
+   about 128 sprite pixels per scanline and a frame about 68 px wide fits.
+5. **No compression; a fixed 54-photo limit.** Everything is stored raw, and
+   the worst case (54 photos, 6 grid pages, print palettes) always fits in
+   4 MB (budget in §8). There's no decompressor on the cart, and every dither
+   mode, including Floyd–Steinberg, is equally cheap. The `codec` byte stays
+   in the format (always 0) so compression could be added later without a
+   format break.
 6. **A separate print palette per photo (optional, phase 5).** The printer
    dyes don't look like a CRT. Since the BIOS prints through the palette, a
    print-tuned palette (gamma and saturation adjusted) costs only 512 bytes
@@ -141,10 +142,10 @@ PackHeader   @ PACK_BASE
 
 ImageRef (16 bytes)
   u16 width, u16 height         (256, 240)
-  u8  codec, u8 reserved
+  u8  codec (0 = raw), u8 reserved
   u16 palette_index             → palette pool (256 × u16 RGB555 each)
   u32 data_offset
-  u32 data_length               (compressed size; decoded size = width × height)
+  u32 data_length               (= width × height while codec is 0)
 
 PhotoEntry
   ImageRef screen
@@ -216,20 +217,20 @@ loopy-photo-cart/
 ├─ cart/                   Loopy program (C)
 │  ├─ Makefile, Makefile.host
 │  ├─ boot/  platform/  include/loopy/   ← adapted from PB/Maniac
-│  ├─ src/                               ← pack, codec, grid, viewer, printui
+│  ├─ src/                               ← pack, image, grid, viewer, printui
 │  ├─ tools/loopy.ld, fixrom.py, mkfixture.py
 │  ├─ host/                              ← host build: renders a pack to PNGs
 │  └─ scripts/build.sh                   ← WSL build (rsync to ~/.cache like PB)
 ├─ web/                    Vite + TypeScript static site
-│  ├─ src/core/            pure TS: resample, quantize, dither, lz4, pack, rompatch
+│  ├─ src/core/            pure TS: resample, quantize, dither, pack, rompatch
 │  ├─ src/worker/          Web Worker entry
 │  ├─ src/ui/              app UI (no framework or a light one, e.g. Preact)
 │  ├─ public/template/     template.bin (copied from cart build)
 │  └─ test/                Vitest unit + golden tests
 ├─ cli/                    `node cli build demo/manifest.json -o demo.bin` (reuses web/src/core)
+├─ sample-photos/          demo cat photos (personal metadata already stripped)
 ├─ demo/
-│  ├─ photos/              cat photos (EXIF stripped!)
-│  ├─ manifest.json        order, crops, dither, title
+│  ├─ manifest.json        order, crops, dither, title (refers to ../sample-photos)
 │  └─ README.md
 ├─ docs/
 │  ├─ PLAN.md  pack-format.md  hardware-notes.md  testing.md
@@ -256,7 +257,7 @@ loopy-photo-cart/
 ### Phase 1 — Pack format and ROM patching, end to end with fixtures
 - `docs/pack-format.md`.
 - A Python fixture generator (`cart/tools/mkfixture.py`) turns 3 PNGs into a
-  pack, raw codec only, to unblock cart work before the web app exists.
+  pack, to unblock cart work before the web app exists.
 - Cart: pack validation, full-screen viewer with left/right navigation, page
   flip and palette-in-vblank.
 - TS: `rompatch.ts` + `checksum.ts`, with a golden test against `fixrom.py`
@@ -264,10 +265,11 @@ loopy-photo-cart/
 - **Exit:** the fixture ROM browses 3 photos in LoopyMSE.
 
 ### Phase 2 — Grid and cursor
-- Grid page composites (generated by the fixture tool at first), cell rects,
+- 3×3 grid page composites with 64×60 thumbnails (generated by the fixture
+  tool at first), cell rects,
   OBJ/BG cursor, paging via L/R and edge wrap, grid↔viewer transitions keeping
   position.
-- **Exit:** 30+ photos browse at a locked 60 fps (check `PROFILE=1`-style
+- **Exit:** 54 photos (6 full pages) browse at a locked 60 fps (check `PROFILE=1`-style
   frame-time readout and the emulator).
 
 ### Phase 3 — Printing
@@ -297,13 +299,13 @@ loopy-photo-cart/
   - quantize directly in RGB555 space (Wu or k-means, e.g. via `image-q` or a
     small in-house implementation) with the 8 reserved UI colours pre-seeded;
   - dither modes: none, ordered (Bayer 4×4), Floyd–Steinberg;
-  - LZ4 compression;
   - pack encoding.
 - Live **Loopy preview**: exactly the bytes that go into the ROM, rendered
   with approximate pixel aspect. Separate tabs for the grid page and the full
   screen.
-- Capacity bar against the fixed 4 MB Floopy Drive limit; building is disabled
-  when the pack doesn't fit.
+- Photo counter ("37 / 54"); adding a 55th photo is refused. The format
+  guarantees the ROM fits in 4 MB, and the size is still checked before
+  download.
 - "Build ROM" downloads a `.bin` generated in-memory.
 - Privacy:
   - no network requests besides the site's own static assets;
@@ -317,13 +319,13 @@ loopy-photo-cart/
 ### Phase 5 — Quality and polish
 - Print-palette tuning (after looking at real stickers), title and splash
   customization, optional captions baked into page composites.
-- Grid layout options (3×3 or 4×3).
 - Fast paths: cache the neighbouring decoded photo in RAM so prev/next is
   instant, and optionally fade transitions.
 - Service worker for offline use.
 
 ### Phase 6 — Demo ROM and publishing
-- `demo/manifest.json` + cat photos, **with EXIF/GPS stripped before commit**.
+- `demo/manifest.json` over the cat photos in `sample-photos/` (personal
+  metadata already stripped).
 - `cli/` builds the demo ROM from the same TS core in CI. Output is
   deterministic, because decode goes through `sharp` → raw RGBA and everything
   after that is pure TS.
@@ -339,7 +341,6 @@ loopy-photo-cart/
 |---|---|
 | Checksum / ROM patch | Vitest golden test: TS output must be byte-identical to `fixrom.py` on the same input |
 | Pack format parity | TS encoder writes fixture packs; the C host build (`cart/host`, native gcc in WSL) parses them and dumps PNGs; CI compares against the expected pixels |
-| LZ4 | Round-trip fuzz in TS; the host-built C decoder decodes TS-encoded blobs |
 | Quantize/dither | Snapshot tests on small images; RGB555 invariants (all palette entries ≤ 0x7FFF, reserved slots fixed) |
 | Cart UI | LoopyMSE with `scripts/capture.ps1`-style screenshot capture; key injection is unreliable, so use PB's `AUTOPILOT` build flag for scripted input |
 | Printing | LoopyMSE `print_*.png` (patched clamp) plus the Phase 3 hardware batch |
@@ -349,12 +350,18 @@ loopy-photo-cart/
 
 ## 8. Risks and open questions
 
-1. **ROM size: decided.** The target is the Floopy Drive, which takes at most
-   4 MB, so the ROM is capped at exactly 4,194,304 bytes. The web app has no
-   cart-size selector: the capacity bar measures against a fixed pack budget
-   of `4 MB − PACK_BASE`, and the app refuses to build a ROM that goes over.
-   - Rough capacity: about 60 raw photos; with LZ4 and ordered dither, likely
-     90–120. Grid pages take about 1 page per 12 photos.
+1. **ROM size and photo limit: decided.** The target is the Floopy Drive, so
+   the ROM is at most 4 MB (4,194,304 bytes). The grid is 3×3 with 64×60
+   thumbnails (exactly ¼ scale), and a ROM holds at most 54 photos (6 pages).
+   Worst-case budget, all uncompressed:
+
+   | Part | Bytes |
+   |---|---|
+   | Code region (`PACK_BASE`) | 262,144 |
+   | 54 photos × (57,600 pixels + 512 palette + 512 print palette) | 3,165,696 |
+   | 6 grid pages × (57,600 pixels + 512 palette) | 348,672 |
+   | Header and tables (generous) | 4,096 |
+   | **Total** | **3,780,608** (about 400 KB spare) |
 2. **Printed aspect and orientation.** LoopyMSE uses an 8:7 sticker aspect,
    Maniac framed at 16:15, and the XS-11 is 40×30 mm. Printing a calibration
    grid on hardware in Phase 3 settles the crop aspect for the web app. The
@@ -376,7 +383,7 @@ loopy-photo-cart/
      Anyone sharing a built ROM satisfies the source requirement by pointing
      to this public repo.
    - Third-party code must be GPL-2-compatible. MIT, BSD and zlib are fine
-     (e.g. `image-q` is MIT, LZ4 is BSD-2). Apache-2.0 is **not** compatible
+     (e.g. `image-q` is MIT). Apache-2.0 is **not** compatible
      with GPL-2.0-only, but it is with "or later" via GPLv3; still, avoid it.
 7. **Demo photo privacy.** Phone photos carry GPS in EXIF, so strip it before
    committing. The tool itself never embeds metadata in ROMs.
