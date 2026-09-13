@@ -59,7 +59,7 @@ File references are to those repos.
 | Cassette | `bios_getSealType()`: 1 = XS-11/XS-14 (OK), 3 = XS-31 (refuse), 0 = none | Check before confirming a print |
 | Input | `START 0x002, L 0x004, R 0x008, A 0x010, D 0x020, C 0x040, B 0x080, U/D/L/R 0x100-0x800`; decode `IO_GAMEPAD[0..1]` (not the low byte only) | Sampled in the ITU1 ISR with edge latching (PB `lp_input.c`) |
 | ROM | Linked at `0x0E000000`, up to 4 MB in the linker script. Header 0x00, vectors 0x80, `.text` 0x480 | Pack budget ≈ 3.7 MB at 4 MB |
-| Emulator | LoopyMSE writes `print_*.png`, but its hook clamps print height to 224 (`printer.cpp:180`) and always reports an XS-11 | Patch LoopyMSE-mouse, or accept 224 rows in emulator tests; real prints still need hardware |
+| Emulator | LoopyMSE writes `print_*.png`, but its hook clamps print height to 224 (`printer.cpp:180`) and always reports an XS-11 | Use LoopyMSE unmodified and accept 224 rows in emulator tests; the full print is verified on hardware |
 
 ---
 
@@ -212,7 +212,7 @@ loopy-photo-cart/
 ├─ .editorconfig           end_of_line = lf
 ├─ CLAUDE.md               project rules (LF, reference projects, build tips)
 ├─ README.md
-├─ LICENSE                 (decide: MIT/zlib for tool + cart)
+├─ COPYING.md              GPL v2 (project is GPL v2 or later)
 ├─ cart/                   Loopy program (C)
 │  ├─ Makefile, Makefile.host
 │  ├─ boot/  platform/  include/loopy/   ← adapted from PB/Maniac
@@ -272,8 +272,8 @@ loopy-photo-cart/
 
 ### Phase 3 — Printing
 - Print flow and dialogs (§4), cassette check, input/clock/sound recovery.
-- LoopyMSE: patch the 224-row clamp in LoopyMSE-mouse so emulator prints show
-  all 241 rows.
+- LoopyMSE is used unmodified. Its print PNGs stop at 224 rows, so emulator
+  tests check only those rows; the full 241 rows are checked on hardware.
 - Hardware test batch (stickers cost money, so plan one session):
   1. print from grid;
   2. print from viewer;
@@ -302,7 +302,8 @@ loopy-photo-cart/
 - Live **Loopy preview**: exactly the bytes that go into the ROM, rendered
   with approximate pixel aspect. Separate tabs for the grid page and the full
   screen.
-- Capacity bar against the selected cart size (see open questions).
+- Capacity bar against the fixed 4 MB Floopy Drive limit; building is disabled
+  when the pack doesn't fit.
 - "Build ROM" downloads a `.bin` generated in-memory.
 - Privacy:
   - no network requests besides the site's own static assets;
@@ -348,16 +349,19 @@ loopy-photo-cart/
 
 ## 8. Risks and open questions
 
-1. **Target cartridge / flash hardware and max ROM size.** The linker allows
-   4 MB, but what do your flash cart / Floopy Drive actually accept? This sets
-   the capacity bar options.
-   - Rough capacity at 4 MB: about 60 raw photos; with LZ4 and ordered dither,
-     likely 90–120.
+1. **ROM size: decided.** The target is the Floopy Drive, which takes at most
+   4 MB, so the ROM is capped at exactly 4,194,304 bytes. The web app has no
+   cart-size selector: the capacity bar measures against a fixed pack budget
+   of `4 MB − PACK_BASE`, and the app refuses to build a ROM that goes over.
+   - Rough capacity: about 60 raw photos; with LZ4 and ordered dither, likely
+     90–120. Grid pages take about 1 page per 12 photos.
 2. **Printed aspect and orientation.** LoopyMSE uses an 8:7 sticker aspect,
    Maniac framed at 16:15, and the XS-11 is 40×30 mm. Printing a calibration
-   grid on hardware in Phase 3 settles the crop aspect for the web app.
-3. **Emulator print clamp.** LoopyMSE prints only 224 rows. Patch our
-   LoopyMSE-mouse copy, or live with it.
+   grid on hardware in Phase 3 settles the crop aspect for the web app. The
+   user has agreed to a hardware test session.
+3. **Emulator print clamp: decided, not patching.** LoopyMSE prints only
+   224 rows. Emulator tests compare those rows; rows 224–240 are verified on
+   hardware only.
 4. **GitHub Pages on a private repo requires a paid plan** (Pro/Team). Develop
    privately with local `vite dev`, then flip the repo public when publishing.
    Alternatively keep the source private and deploy the site from a separate
@@ -365,9 +369,15 @@ loopy-photo-cart/
 5. **Wonderful toolchain in GitHub Actions.** It should work on ubuntu-latest
    via its bootstrap. Fallback: commit `web/public/template/template.bin`
    built locally, and have CI verify its descriptor version.
-6. **License.** The borrowed platform code is your own (Maniac is GPL only
-   because of its ScummVM-derived interpreter). Pick a license for this repo
-   (MIT or zlib is typical for a tool + template ROM).
+6. **License: decided, GPL v2 or later** (`COPYING.md`), matching the sibling
+   Loopy projects.
+   - ROMs built with the tool contain the GPL cart program plus the user's
+     photos. The photos are data, not a derived work, so they stay the user's.
+     Anyone sharing a built ROM satisfies the source requirement by pointing
+     to this public repo.
+   - Third-party code must be GPL-2-compatible. MIT, BSD and zlib are fine
+     (e.g. `image-q` is MIT, LZ4 is BSD-2). Apache-2.0 is **not** compatible
+     with GPL-2.0-only, but it is with "or later" via GPLv3; still, avoid it.
 7. **Demo photo privacy.** Phone photos carry GPS in EXIF, so strip it before
    committing. The tool itself never embeds metadata in ROMs.
 8. **Overscan.** 240p on real TVs crops edges. Photos can go edge to edge, but
