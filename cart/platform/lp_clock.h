@@ -19,6 +19,10 @@
 // Start the hardware clock. Safe to call more than once.
 void LP_ClockInit(void);
 
+// Reprogram the timer after something outside the program (a BIOS print) may
+// have stopped or changed it. The tick count carries on.
+void LP_ClockRearm(void);
+
 // Milliseconds since LP_ClockInit(). Counts real elapsed time whatever the
 // CPU is doing -- see lp_clock.c.
 uint32_t LP_ClockMS(void);

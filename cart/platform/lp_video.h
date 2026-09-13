@@ -32,6 +32,11 @@
 
 void LP_VideoInit(void);
 
+// Rewrite every VDP register this backend owns, and re-publish the palette,
+// sprites and both pages at the next present: bios_vdpMode() (called to
+// re-arm the pad scan after a print) reprograms the VDP.
+void LP_VideoRestore(void);
+
 // The compose surface, LP_FB_W x LP_FB_H bytes, longword-aligned.
 uint8_t *LP_Fb(void);
 

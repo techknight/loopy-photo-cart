@@ -1,0 +1,19 @@
+# Satie, Gymnopedie No. 1 -- the background music.
+#
+# Source MIDI channels after tools/sound/split_voices.py:
+#   0  right hand                 -> console channel 0 (six voices)
+#   1  left hand                  -> console channel 1 (four voices)
+#   2  left-hand fifth voice      -> console channel 3 (four voices)
+# Console channel 2 is left to the sound effects.
+#
+# Program 1 is the ROM's piano-like preset (not layered, so the full voice
+# budget applies). Chosen by the provisional instrument notes, not by ear; a
+# listen on hardware may pick better.
+
+name = "gymnopedie"
+loop = true
+
+[chan_map]
+0 = [0, 1]
+1 = [1, 1]
+2 = [3, 1]

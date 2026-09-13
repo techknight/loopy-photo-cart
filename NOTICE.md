@@ -11,10 +11,24 @@ It is the author's own work, except for the third-party parts below.
 supplies the cartridge program's base:
 - the SH-1 boot code in `cart/boot/`;
 - the Loopy hardware and BIOS headers in `cart/include/`;
-- the linker scripts and `cart/tools/fixrom.py`.
+- the linker scripts and `cart/tools/fixrom.py`;
+- the SCI1 register setup in `cart/platform/lps/lps_port.h`.
 
 Altered files are marked as such. The zlib notice is in
 `cart/LICENSE-loopy-template.txt`.
+
+## LoopyDOOM (GPL-2.0-or-later)
+
+The sticker printing sequence in `cart/platform/lp_print.c` is adapted from
+[LoopyDOOM](https://github.com/ThroatyMumbo/LoopyDOOM)'s
+`platform/loopy_print.c` by ThroatyMumbo. That covers the BIOS call sequence,
+its retry guards, and the zeroed ISR work pointers.
+
+The sound driver in `cart/platform/lps/` is the author's own loopy-soundlib.
+Two parts of it are also adapted from LoopyDOOM's
+`platform/i_music_loopy.c`: the sequencer's event-stream design and the
+sounding-note bitmaps. The music baker in `cart/tools/sound/lps_bake.py`
+takes its set of options from LoopyDOOM's `tools/bake_music.py`.
 
 ## Fonts by GGBotNet (CC0 1.0)
 
@@ -25,11 +39,21 @@ v1.0 Universal.
   on-screen font. The font file and its licence are in
   `cart/assets/font/home-video/`, and `cart/src/font_homevideo.h` is generated
   from it.
-- **Public Pixel Font**, from <https://ggbot.itch.io/public-pixel-font>: the
-  small text on grid pages, such as control hints. The font file and its
-  licence are in `cart/assets/font/public-pixel/`.
+- **Public Pixel Font**, from <https://ggbot.itch.io/public-pixel-font>: small
+  text, such as control hints on grid pages and dialog lines. The font file
+  and its licence are in `cart/assets/font/public-pixel/`, and
+  `cart/src/font_publicpixel.h` is generated from it.
+
+## Music (public domain)
+
+The background music is Erik Satie's *Gymnopédie No. 1* (1888), from the
+[Mutopia Project](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37)
+edition #37. Its typesetter placed that edition in the public domain. The
+source files and the steps that turn them into `cart/src/music_gymnopedie.h`
+are in `cart/assets/music/`.
 
 ## References
 
-LoopyDOOM (GPL-2.0-or-later) and the LoopyMSE emulator (GPL-3) were used as
-references for hardware behaviour. No code was copied from LoopyMSE.
+LoopyDOOM was also used as a reference for hardware behaviour. LoopyMSE, by
+kasami (GPL-3), was used only as a reference for how the hardware behaves; no
+code was copied from it.

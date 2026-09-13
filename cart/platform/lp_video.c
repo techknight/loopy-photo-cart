@@ -154,6 +154,37 @@ void LP_VideoInit(void)
 	               | LAYER_ENABLE_BM0 | LAYER_ENABLE_OBJ0;
 }
 
+void LP_VideoRestore(void)
+{
+	VDP.BG_CTRL = 0;
+	VDP.CHARBASE = 0;
+	VDP.OBJ_CTRL = OBJ_FORMAT_4BPP;
+	VDP.OBJ_SUBPAL[0] = OBJ_SUBPAL(15, 15, 15, 15);
+	VDP.OBJ_SUBPAL[1] = OBJ_SUBPAL(15, 15, 15, 15);
+
+	VDP.BM_SCROLLX[0] = 0;
+	VDP.BM_SCROLLY[0] = PAGE_SCROLLY(back_page ^ 1);
+	VDP.BM_SCREENX[0] = 0;
+	VDP.BM_SCREENY[0] = 0;
+	VDP.BM_WIDTH[0] = LP_FB_W - 1;
+	VDP.BM_HEIGHT[0] = LP_FB_H - 1;
+	VDP.BM_CTRL = BM_MODE_8BPP_SHARED;
+	VDP.BM_SUBPAL = BM_SUBPAL(0, 0, 0, 0);
+
+	sys_setDmaEnabled(true);
+
+	VDP.BLEND = BLEND_MATH;
+	VDP.SCREENPRIO = SCREEN_A_ENABLE | PRIORITY_BM_A | PRIORITY_BG0_A
+	               | PRIORITY_OBJ0_A;
+	VDP.LAYER_CTRL = LAYER_SCREEN(LAYER_SCREEN_A, LAYER_SCREEN_A,
+	                              LAYER_SCREEN_A, LAYER_SCREEN_A)
+	               | LAYER_ENABLE_BM0 | LAYER_ENABLE_OBJ0;
+
+	pal_dirty = 1;
+	oam_dirty = 1;
+	stale_pages = 2;
+}
+
 void LP_OamSet(unsigned slot, uint32_t entry)
 {
 	if (slot < LP_OAM_SLOTS && oam_shadow[slot] != entry) {

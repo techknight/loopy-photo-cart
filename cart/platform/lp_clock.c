@@ -28,6 +28,7 @@
 
 #include "lp_clock.h"
 #include "lp_platform.h"
+#include "lp_sound.h"
 
 #define CLOCK_HZ     (F_CPU / 8)
 #define TICK_MS      LP_CLOCK_TICK_MS
@@ -61,6 +62,8 @@ void LP_ClockISR(void)
 
 	++clock_ticks;
 
+	LP_SoundTick();
+
 	// The pad is sampled here so a press that begins and ends inside a
 	// long redraw is still seen.
 	if (++pad_div >= PAD_DIV) {
@@ -92,6 +95,22 @@ void LP_ClockInit(void)
 	sys_setInterruptMask(0xE);
 
 	ITU_TSTR |= ITU1_START;
+}
+
+void LP_ClockRearm(void)
+{
+	uint32_t sr = LP_IrqBlock();
+
+	ITU_TSTR &= (uint8_t) ~ITU1_START;
+	ITU_TCR1 = TCR_CLEAR_ON_GRA | TCR_CLOCK_DIV8;
+	ITU_GRA1 = (uint16_t) (TICK_COUNTS - 1);
+	(void) ITU_TSR1;
+	ITU_TSR1 = (uint8_t) ~TSR_IMFA;
+	ITU_TIER1 = TIER_IMIEA;
+	sys_setInterruptPriority(INT_PRIO_ITU1, 0xF);
+	ITU_TSTR |= ITU1_START;
+
+	LP_IrqRestore(sr);
 }
 
 uint32_t LP_ClockMS(void)

@@ -17,6 +17,9 @@
 //           turns the page
 //   L / R   previous / next page, keeping the cursor's cell where it exists
 //   A       open the photo full screen; B there comes back to it
+//   Start   print the highlighted photo as a sticker
+//   C       music on/off
+//   D       help
 //
 
 #include <string.h>
@@ -26,10 +29,14 @@
 #include "lp_input.h"
 #include "lp_video.h"
 
+#include "lp_sound.h"
+
 #include "cursor.h"
 #include "grid.h"
+#include "help.h"
 #include "lpc.h"
 #include "pack.h"
+#include "printui.h"
 #include "viewer.h"
 
 #define CELLS_PER_PAGE (LPC_GRID_COLS * LPC_GRID_ROWS)
@@ -98,6 +105,8 @@ static void Move(uint16_t press)
 	unsigned row = cell / LPC_GRID_COLS;
 	unsigned count = page.cell_count;
 
+	LP_SfxPlay(LP_SFX_MOVE);
+
 	if (press & GAMEPAD_BTN_LEFT) {
 		if (col > 0)
 			--cell;
@@ -127,6 +136,14 @@ void LPC_GridRun(void)
 	page_count = LPC_PackPageCount();
 	LPC_CursorInit();
 
+#ifdef LPC_TEST_HELP
+	// Test builds only: open the help popover over the first page at boot,
+	// for screenshots.
+	ShowPage(0);
+	LP_VideoPresent();
+	LPC_HelpShow();
+#endif
+
 	for (;;) {
 		// (Re)enter the grid on the page and cell holding `photo`.
 		cell = photo % CELLS_PER_PAGE;
@@ -138,13 +155,37 @@ void LPC_GridRun(void)
 			uint16_t press = DpadPresses(edges, LP_PadHeld());
 
 			if (edges & GAMEPAD_BTN_A) {
+				LP_SfxPlay(LP_SFX_BUTTON);
 				photo = page.first_photo + cell;
 				break;
 			}
-			if (edges & GAMEPAD_BTN_LTRIG) {
+			if (edges & GAMEPAD_BTN_START) {
+				LP_SfxPlay(LP_SFX_BUTTON);
+				LPC_CursorHide();
+				LPC_PrintPhoto(page.first_photo + cell, 1);
+				// The print's VDP reset may have lost the cursor's
+				// cells; upload them again, then redraw the page.
+				LPC_CursorInit();
+				ShowPage(page_index);
+				PlaceCursor();
+				LP_VideoPresent();
+				continue;
+			}
+			if (edges & GAMEPAD_BTN_D) {
+				LP_SfxPlay(LP_SFX_BUTTON);
+				LPC_CursorHide();
+				LPC_HelpShow();
+				ShowPage(page_index);
+				PlaceCursor();
+			} else if (edges & GAMEPAD_BTN_C) {
+				LP_SfxPlay(LP_SFX_BUTTON);
+				LP_MusicToggle();
+			} else if (edges & GAMEPAD_BTN_LTRIG) {
+				LP_SfxPlay(LP_SFX_BUTTON);
 				TurnPage(-1, cell);
 				PlaceCursor();
 			} else if (edges & GAMEPAD_BTN_RTRIG) {
+				LP_SfxPlay(LP_SFX_BUTTON);
 				TurnPage(1, cell);
 				PlaceCursor();
 			} else if (press) {

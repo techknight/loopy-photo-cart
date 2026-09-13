@@ -36,7 +36,8 @@ ROMSWP   = $(BUILDDIR)/$(NAME)-byteswapped.bin
 LDSCRIPT = tools/loopy.ld
 
 SRCS_S = $(wildcard boot/*.s)
-SRCS_C = $(wildcard boot/*.c) $(wildcard platform/*.c) $(wildcard src/*.c)
+SRCS_C = $(wildcard boot/*.c) $(wildcard platform/*.c) $(wildcard platform/lps/*.c) \
+         $(wildcard src/*.c)
 OBJS   = $(patsubst %.s,$(OBJDIR)/%.o,$(SRCS_S)) \
          $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS_C))
 
@@ -53,7 +54,7 @@ CFLAGS += -Wall -Wextra -Wno-unused-parameter
 # The template's sys_setInterruptPriority() reaches IPRB-IPRE by offsetting
 # from INTC_IPRA, which GCC cannot know are contiguous registers.
 CFLAGS += -Wno-array-bounds
-CFLAGS += -Iinclude -Iplatform -Isrc
+CFLAGS += -Iinclude -Iplatform -Iplatform/lps -Isrc
 CFLAGS += -DCASIO_LOOPY
 CFLAGS += -DLPC_PACK_OFFSET=$(PACK_OFFSET)ul -DLPC_BUILD_ID=\"$(BUILD_ID)\"
 # Test-only switches, e.g. EXTRA_CFLAGS=-DLPC_OSD_FRAMES=100000.

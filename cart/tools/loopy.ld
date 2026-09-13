@@ -144,5 +144,9 @@ ASSERT(__template_end <= __pack_base,
 
 ENTRY(start);
 
+/* BIOS entry missing from the template's address_loopy.ld: the print head's
+   temperature poll (hardware-confirmed by LoopyDOOM). */
+_bios_checkPrintTemp = 0x1408;
+
 INCLUDE "tools/address_sh7021.ld"
 INCLUDE "tools/address_loopy.ld"

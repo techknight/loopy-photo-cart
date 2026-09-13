@@ -184,7 +184,8 @@ File references are to those repos.
      - Music starts at boot and loops.
      - Before a print, all sounding notes are released, following LoopyManiac
        (`LP_SoundEnable(0)`). Music resumes when the print finishes.
-     - D toggles music on and off; effects stay on.
+     - C toggles music on and off; effects stay on. D opens the help
+       popover.
    - **Tempo:** judge it with a stopwatch on hardware. LoopyMSE has run 7.5%
      slow in the past.
 
@@ -244,7 +245,8 @@ image), then grid page 1.
 | L / R | Previous / next page (cursor keeps its cell, clamped on the last page) |
 | A | Open the photo full screen |
 | Start | Print the highlighted photo (confirm dialog) |
-| D | Show the help popover (planned, Phase 5) |
+| C | Music on/off |
+| D | Help popover |
 
 **Full-screen viewer**
 
@@ -253,6 +255,8 @@ image), then grid page 1.
 | D-pad left / right, L / R | Previous / next photo (wraps) |
 | A or Start | Print (confirm dialog) |
 | B | Back to the grid, with the cursor on the current photo (and its page) |
+| C | Music on/off |
+| D | Help popover |
 
 **Print flow** (identical from both screens)
 
@@ -392,7 +396,7 @@ loopy-photo-cart/
 - **Pending:** the frame-rate check on hardware. Cursor moves should be a
   locked 60 fps (sprites only); a page turn is a ROM copy plus two blits.
 
-### Phase 2b — Sound
+### Phase 2b — Sound ✅ in LoopyMSE (2026-09-13); listening on hardware pending
 - Integrate PuzzleBobble's sound code directly (no vendored library), set up
   as in its `platform/lp_sound.c`:
   - music on channels 0, 1 and 3 (mask 0x0B);
@@ -406,6 +410,23 @@ loopy-photo-cart/
 - **Exit:** music loops cleanly for 10+ minutes with no stuck notes, and
   effects during dense passages don't drop music notes (check with LoopyMSE
   `--verbose` serial log).
+- **Done:**
+  - `cart/platform/lps/` is the sound driver as LoopyPuzzleBobble runs it;
+    `cart/platform/lp_sound.c` is the glue (plan above, ticked from ITU1).
+  - Music is *Gymnopédie No. 1* (Mutopia #37, public domain), split by
+    `tools/sound/split_voices.py` and baked by `tools/sound/lps_bake.py` into
+    `src/music_gymnopedie.h`: 2.3 KB, 9 bytes/s, notes at once 5/6, 4/4 and
+    1/4, nothing dropped. `tools/sound/mkmusic.py` redoes both steps.
+  - The piano is program 1, chosen from the instrument notes rather than by
+    ear. *Träumerei* was not baked.
+  - Effects on channel 2, program 10: a note-96 tick for d-pad movement and
+    a rising 84→91 chirp for buttons.
+  - **C** pauses and resumes the music (D became help). Printing pauses the
+    music and silences effects.
+  - Verified: LoopyMSE's serial log shows the program changes and the
+    opening notes going out.
+  - **Pending:** a listen on hardware (preset choice, loudness, effects over
+    the music).
 
 ### Phase 3 — Printing
 - Print flow and dialogs (§4), cassette check, input/clock/sound recovery.
@@ -422,6 +443,26 @@ loopy-photo-cart/
   7. print one portrait (rotated) photo to confirm which rotation direction
      reads naturally on the sticker.
 - **Exit:** a real sticker matches the screen.
+- **Implemented (2026-09-13), untested on hardware:**
+  - `cart/platform/lp_print.c` follows LoopyManiac's hardware-proven sequence,
+    from LoopyDOOM:
+    - pause input, silence sound, zero the BIOS ISR work pointers;
+    - call `bios_print8bpp`, retrying only warm-up;
+    - rearm the ITU1 clock, re-arm the pad scan, and restore every VDP
+      register (`LP_VideoRestore`).
+  - `cart/src/printui.c` handles the flow:
+    - a "PRINT PHOTO?" confirmation;
+    - the cassette check (none / VHS refused);
+    - "PRINTING..." shown on both pages before the blocking call;
+    - a result message for each BIOS status.
+  - The print buffer is the stored photo copied into RAM at 256×241, with the
+    last row duplicated. It prints through the photo's print palette.
+  - Start prints from the grid; A or Start prints from the viewer.
+  - Verified in LoopyMSE with a boot-time test build
+    (`EXTRA_CFLAGS=-DLPC_TEST_AUTOPRINT=n`): the emulator's print hook wrote
+    the portrait photo, rotated to fill the sticker. The grid came back
+    working afterwards.
+  - The hardware test batch above (steps 1–7) is still to do.
 
 ### Phase 4 — Web app MVP
 - Vite + TS. Add photos (file picker, drag & drop, multi-select), reorder,
@@ -489,7 +530,7 @@ loopy-photo-cart/
 - **Exit:** a ROM built in the browser boots in LoopyMSE and prints.
 
 ### Phase 5 — Quality and polish
-- **Help popover on D** (the grid header already hints "D: Show Help"): a
+- ✅ **Help popover on D** (`cart/src/help.c`, 2026-09-13; the grid header hints "D: Show Help"): a
   panel over the current screen listing every control, the website, and the
   copyright notice. Dismissed with D or B. Home Video Font for the heading
   and Public Pixel Font for the body; UI slots only, so it works over any

@@ -25,4 +25,9 @@ uint16_t LP_PadHeld(void);
 // Press edges accumulated since the last call; reading clears them.
 uint16_t LP_PadEdges(void);
 
+// Stop sampling (around a print, which shares the VDP's IO expansion with the
+// controller scan), and re-arm the scan afterwards with every latch cleared.
+void LP_InputPause(void);
+void LP_InputRescan(void);
+
 #endif

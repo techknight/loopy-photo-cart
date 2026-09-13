@@ -37,6 +37,12 @@
 #define LPC_BUILD_ID "dev"
 #endif
 
+// Shown in the help popover. The site is GitHub Pages for the project repo;
+// split across two lines, since a line of small text holds 25 characters.
+#define LPC_WEBSITE_HOST "techknight.github.io/"
+#define LPC_WEBSITE_PATH "loopy-photo-cart"
+#define LPC_COPYRIGHT    "(C) 2026 Derek Quenneville"
+
 // Pack limits (docs/pack-format.md).
 #define LPC_MAX_PHOTOS 54
 #define LPC_GRID_COLS  3

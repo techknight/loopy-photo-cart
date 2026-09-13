@@ -25,10 +25,13 @@
 #include "loopy.h"
 
 #include "lp_input.h"
+#include "lp_sound.h"
 #include "lp_video.h"
 
+#include "help.h"
 #include "lpc.h"
 #include "pack.h"
+#include "printui.h"
 #include "text.h"
 #include "ui.h"
 #include "viewer.h"
@@ -43,9 +46,9 @@
 #define OSD_PAD    3
 #define OSD_TOP    16
 #define OSD_RIGHT  (LP_FB_W - 16)
-#define OSD_H      (LPC_TEXT_HEIGHT + 2 * OSD_PAD)
+#define OSD_H      (LPC_LARGE_HEIGHT + 2 * OSD_PAD)
 // "54/54" is the widest counter.
-#define OSD_MAX_W  (5 * LPC_TEXT_ADVANCE + 2 * OSD_PAD)
+#define OSD_MAX_W  (5 * LPC_LARGE_ADVANCE + 2 * OSD_PAD)
 
 static uint8_t osd_under[OSD_MAX_W * OSD_H];
 static int osd_x, osd_w;
@@ -118,14 +121,15 @@ static void OsdShow(unsigned index, unsigned count)
 	s = PutUnsigned(s, count);
 	*s = '\0';
 
-	osd_w = LPC_TextWidth(text, 1) + 2 * OSD_PAD;
+	osd_w = LPC_TextWidth(LPC_FONT_LARGE, text) + 2 * OSD_PAD;
 	osd_x = OSD_RIGHT - osd_w;
 	for (row = 0; row < OSD_H; ++row)
 		memcpy(osd_under + row * OSD_MAX_W,
 		       fb + (OSD_TOP + row) * LP_FB_W + osd_x, (size_t) osd_w);
 
 	LPC_FillRect(osd_x, OSD_TOP, osd_w, OSD_H, LPC_UI_BLACK);
-	LPC_TextDraw(osd_x + OSD_PAD, OSD_TOP + OSD_PAD, text, LPC_UI_WHITE, 1);
+	LPC_TextDraw(LPC_FONT_LARGE, osd_x + OSD_PAD, OSD_TOP + OSD_PAD, text,
+	             LPC_UI_WHITE);
 	osd_frames = OSD_FRAMES;
 }
 
@@ -151,12 +155,26 @@ unsigned LPC_ViewerRun(unsigned index, int can_return)
 		uint16_t edges = LP_PadEdges();
 
 		if (can_return && (edges & GAMEPAD_BTN_B)) {
+			LP_SfxPlay(LP_SFX_BUTTON);
 			return index;
+		} else if (edges & (GAMEPAD_BTN_A | GAMEPAD_BTN_START)) {
+			LP_SfxPlay(LP_SFX_BUTTON);
+			LPC_PrintPhoto(index, 1);
+			ShowPhoto(index);
+		} else if (edges & GAMEPAD_BTN_D) {
+			LP_SfxPlay(LP_SFX_BUTTON);
+			LPC_HelpShow();
+			ShowPhoto(index);
+		} else if (edges & GAMEPAD_BTN_C) {
+			LP_SfxPlay(LP_SFX_BUTTON);
+			LP_MusicToggle();
 		} else if (edges & (GAMEPAD_BTN_LEFT | GAMEPAD_BTN_LTRIG)) {
+			LP_SfxPlay(edges & GAMEPAD_BTN_LEFT ? LP_SFX_MOVE : LP_SFX_BUTTON);
 			index = index ? index - 1 : count - 1;
 			ShowPhoto(index);
 			OsdShow(index, count);
 		} else if (edges & (GAMEPAD_BTN_RIGHT | GAMEPAD_BTN_RTRIG)) {
+			LP_SfxPlay(edges & GAMEPAD_BTN_RIGHT ? LP_SFX_MOVE : LP_SFX_BUTTON);
 			index = index + 1 < count ? index + 1 : 0;
 			ShowPhoto(index);
 			OsdShow(index, count);

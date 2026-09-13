@@ -64,10 +64,25 @@ the viewer instead.
 | Grid | D-pad | Move the cursor (repeats when held). Off the left or right edge turns the page. |
 | Grid | L / R | Previous / next page |
 | Grid | A | Open the photo full screen |
+| Grid | Start | Print the highlighted photo as a sticker |
 | Viewer | Left / Right, L / R | Previous / next photo |
+| Viewer | A / Start | Print this photo as a sticker |
 | Viewer | B | Back to the grid, with the cursor on this photo |
+| Both | C | Music on/off |
+| Both | D | Help popover |
 
-In LoopyMSE's default key map, Z is A, X is B, and Q/W are L/R.
+In LoopyMSE's default key map, Z is A, X is B, C is C, V is D, Q/W are L/R
+and Enter is Start.
+
+Test switches, set with `cart\scripts\build.ps1 EXTRA_CFLAGS=...`:
+
+| Switch | Effect |
+|---|---|
+| `-DLPC_OSD_FRAMES=100000` | Keep the viewer's photo counter on screen |
+| `-DLPC_TEST_AUTOPRINT=n` | Print photo n without asking, shortly after boot. LoopyMSE writes the sticker as a PNG in its working folder. |
+| `-DLPC_TEST_HELP` | Open the help popover at boot |
+
+Test switches change the template, so rebuild without them afterwards.
 
 The viewer's "3/25" counter disappears after 1.5 s, usually before LoopyMSE
 has finished starting. For screenshots, build with

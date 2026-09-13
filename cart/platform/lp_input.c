@@ -26,17 +26,44 @@
 
 static volatile uint16_t pad_held;
 static volatile uint16_t pad_edges;
+static volatile uint8_t sampling;
 
 void LP_InputInit(void)
 {
 	pad_held = 0;
 	pad_edges = 0;
+	sampling = 1;
+}
+
+void LP_InputPause(void)
+{
+	sampling = 0;
+}
+
+// After a print the scan comes back reading an idle image, which would show
+// as buttons held and swallow the next presses (LoopyManiac, on hardware).
+// Re-arming it and clearing every latch avoids both.
+void LP_InputRescan(void)
+{
+	uint32_t sr;
+
+	bios_vdpMode(CONTROL_MODE_GAMEPAD, VIDEO_HEIGHT_240P);
+
+	sr = LP_IrqBlock();
+	pad_held = 0;
+	pad_edges = 0;
+	sampling = 1;
+	LP_IrqRestore(sr);
 }
 
 // Called from LP_ClockISR every fifth 2 ms tick, i.e. at 100 Hz.
 void LP_PadSample(void)
 {
-	uint16_t now = (uint16_t) READ_GAMEPAD1_RAW;
+	uint16_t now;
+
+	if (!sampling)
+		return;
+	now = (uint16_t) READ_GAMEPAD1_RAW;
 
 	pad_edges |= (uint16_t) (now & ~pad_held);
 	pad_held = now;
