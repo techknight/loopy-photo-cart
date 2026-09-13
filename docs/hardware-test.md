@@ -29,7 +29,8 @@
 | Stickers now show the whole photo, and a circle prints round (`calibration.bin` chart 1) | `cart\build\calibration.bin` |
 | Photos in the viewer have black bars above and below (landscape) or at the sides (portrait) and look right | `cart\build\fixture-demo.bin` |
 | The print result goes away by itself | any |
-| The music plays *La Candeur* (36 s), then Clementi's Sonatina (58 s), then starts over; C still pauses and resumes it | `cart\build\fixture-demo.bin` |
+| The music plays *La Candeur* (36 s), then Clementi's Sonatina (58 s), then starts over; C still pauses and resumes it. (Already confirmed in LoopyMSE's serial log: Clementi's first note follows *La Candeur*'s 241st, and *La Candeur* returns after Clementi's 333.) | `cart\build\fixture-demo.bin` |
+| The help popover shows `loopyphotocart.com` (checked in LoopyMSE) | any |
 
 The checklist below is kept for future sessions.
 

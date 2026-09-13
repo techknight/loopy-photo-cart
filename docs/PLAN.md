@@ -615,8 +615,15 @@ loopy-photo-cart/
     **loopyphotocart.com** (user, 2026-09-13; HTTPS certificate approved).
     Pages works on the private repository, so `web.yml` deploys on every push
     to `main`. The cart's help popover shows the domain.
-  - **Waiting on the user:** tagging the first release (`v*`), and making the
-    repository public when ready.
+  - **Released (2026-09-13):**
+    - the repository is public, with its homepage set to
+      <https://loopyphotocart.com>;
+    - tag `v1.0` published
+      <https://github.com/techknight/loopy-photo-cart/releases/tag/v1.0>:
+      `loopy-photo-cart-template.bin`, `loopy-photo-cart-demo.bin` (25
+      photos, 3 pages, validated) and `loopy-photo-cart-site.zip`;
+    - the playlist (*La Candeur* → Clementi → repeat) and the help popover's
+      domain were checked in LoopyMSE before tagging.
 
 ---
 
