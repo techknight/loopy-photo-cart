@@ -17,4 +17,8 @@ See `docs/PLAN.md` for the architecture and milestones.
   `src/loopycam.c`) and recovery after a print (input, clock, sound).
 - `G:\LoopyPuzzleBobble\loopy-puzzlebobble`: frame rate and video (`docs/perf.md`,
   `platform/lp_video.c`), input, and LoopyMSE capture scripts.
+- `G:\LoopySoundlib\loopy-soundlib`: music and sound effects (`lps/`,
+  `tools/lps_bake.py`, `docs/hardware.md`, `docs/instruments.md`). It's the
+  user's own code (GPL-2.0-or-later). Don't take anything that pulls in the
+  loopy-glider MIT licence.
 - `G:\LoopySimCity`: ignore, don't use anything from it.

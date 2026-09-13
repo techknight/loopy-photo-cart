@@ -139,6 +139,50 @@ File references are to those repos.
        cheap.
      - *Grid:* the web app bakes an upright thumbnail into the page image.
    - Storage is the same for either orientation, so the 54-photo budget holds.
+8. **Background music and two sound effects, using loopy-soundlib.** The
+   `lps/` library from `G:\LoopySoundlib\loopy-soundlib` is vendored into
+   `cart/`. It is the user's own code, GPL-2.0-or-later, and proven on
+   hardware in LoopyPuzzleBobble. It provides the sequencer, the effects
+   engine and the MIDI baker.
+   - **Hardware:** a uPD937 synth fed MIDI over SCI1. It has 4 channels with
+     6/4/2/4 notes each, and 110 Casio presets that are **not** General MIDI.
+     Velocity is on/off only, and sustain is the only controller that works.
+   - **Channel plan:** music on console channels 0, 1 and 3 (6 + 4 + 4
+     notes). Effects play alone on channel 2, so they never cut music notes.
+   - **Music:** a public-domain piano piece whose *edition* is also public
+     domain, taken from the Mutopia Project. `tools/lps_bake.py` bakes it into
+     the template ROM as a looping song of about 2–3 KB.
+
+     | Candidate | Length | Notes | Peak notes (treble / bass) | Edition licence |
+     |---|---|---|---|---|
+     | Satie, *Gymnopédie No. 1* (1888) | ~2:20 | 282 | 5 / 5 | Public Domain (CC0), Mutopia #37 |
+     | Schumann, *Träumerei* Op. 15 No. 7 | ~1:50 | 339 | 4 / 5 | Public Domain (CC0), Mutopia #504 |
+
+     Pick one after listening in LoopyMSE. Avoid CC-BY-SA editions (e.g.
+     Mutopia's *Gnossienne No. 1*); that licence isn't GPL-2-compatible.
+   - **Arrangement:**
+     - The treble part goes to channel 0.
+     - The bass peaks at 5 notes but channels 1 and 3 hold 4 each. A small
+       pre-bake script splits it (lowest note to channel 3, the rest to
+       channel 1) or trims overlapping held notes. `lps_bake.py --check-poly
+       --simulate --strict` must pass.
+     - The preset is a non-layered, piano-like one chosen by ear. Program 10
+       is ruled out for melody because its high notes are clicks.
+     - Sustain-pedal events can be added where chords should ring.
+   - **Effects:** each is a hand-written table of 4-byte steps (soundlib has no
+     effects-bank compiler). Every effect starts with a program change, which
+     silences the channel, and a new effect cancels the previous one.
+     - *Move tick* (D-pad, L/R page flips): program 10, note 96, the menu
+       cursor click used by four retail Loopy games.
+     - *Confirm* (A, B, Start): a short two-note rising chirp, program and
+       notes chosen by ear.
+   - **Behaviour:**
+     - Music starts at boot and loops.
+     - Before a print, all sounding notes are released, following LoopyManiac
+       (`LP_SoundEnable(0)`). Music resumes when the print finishes.
+     - D toggles music on and off; effects stay on.
+   - **Tempo:** judge it with a stopwatch on hardware. LoopyMSE has run 7.5%
+     slow in the past.
 
 ### Photo pack format v1 (big-endian, word-aligned)
 
@@ -289,6 +333,18 @@ loopy-photo-cart/
   position.
 - **Exit:** 54 photos (6 full pages) browse at a locked 60 fps (check `PROFILE=1`-style
   frame-time readout and the emulator).
+
+### Phase 2b — Sound
+- Vendor soundlib `lps/`: `LPS_PLAN_CUSTOM`, music mask 0x0B, effects mask
+  0x04, ticked from our ITU1 interrupt (PuzzleBobble's `platform/lp_sound.c`).
+- Fetch both candidate MIDIs into `cart/music/` with a `SOURCES.md` recording
+  URL, edition and licence. Write the bass-split pre-pass. Bake both songs and
+  listen in LoopyMSE, then choose one.
+- Write the move-tick and confirm effect tables. Wire them to input, add the
+  D music toggle, and release notes around printing.
+- **Exit:** music loops cleanly for 10+ minutes with no stuck notes, and
+  effects during dense passages don't drop music notes (check with LoopyMSE
+  `--verbose` serial log).
 
 ### Phase 3 — Printing
 - Print flow and dialogs (§4), cassette check, input/clock/sound recovery.
@@ -451,6 +507,10 @@ loopy-photo-cart/
    metadata in ROMs.
 8. **Overscan.** 240p on real TVs crops edges. Photos can go edge to edge, but
    grid UI, cursor and dialogs stay inside a ~16 px safe margin.
+9. **Soundlib licence headers disagree.** The owner's intent is GPL-2.0-or-later,
+   but the `lps/*` file headers and README say GPL-3.0-or-later, and
+   `NOTICE.md` says "needs compliance check". Fix the headers upstream before
+   vendoring. Otherwise the combined ROM would effectively be GPL-3.
 
 ---
 
