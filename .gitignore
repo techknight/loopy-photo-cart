@@ -1,2 +1,9 @@
 # Original photos still carry GPS/EXIF metadata; never commit them.
 sample-photos/
+
+# Cartridge build outputs
+cart/obj/
+cart/build/
+
+# Python bytecode
+__pycache__/

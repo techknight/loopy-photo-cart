@@ -32,8 +32,9 @@ Yes. It is the core of the design:
    cartridge" screen instead of crashing. The bare template stays bootable,
    which also makes it a useful test.
 
-The template carries a small **descriptor** at the start of its reserved
-region: magic, pack-format version, `PACK_BASE` and build id. The web app reads
+The template carries a 32-byte **descriptor** at ROM offset `0x20`, in the
+cartridge header's free space: magic `LPCT`, descriptor and pack-format
+versions, `PACK_BASE`, the 4 MB limit, and the build id (`cart/README.md`). The web app reads
 it and refuses a template/app version mismatch, so an old cached template can
 never silently produce a broken ROM.
 
@@ -194,7 +195,9 @@ PackHeader   @ PACK_BASE
   u16      version      1
   u16      flags        (bit0: has print palettes)
   u32      total_size
-  u32      crc32        over [PACK_BASE+16, PACK_BASE+total_size)
+  u32      header_crc32 over [PACK_BASE+16, end of the tables) -- not the
+                        images: a CRC of ~3.7 MB would take seconds at boot
+                        on the SH-1, and the web app verifies the whole ROM
   u16      photo_count
   u16      page_count
   u32      photo_table  offset → PhotoEntry[photo_count]
@@ -308,15 +311,28 @@ loopy-photo-cart/
 
 ## 6. Phased milestones
 
-### Phase 0 — Repo and toolchain skeleton
+### Phase 0 — Repo and toolchain skeleton ✅ (2026-09-13)
 - Private repo, `.gitattributes` / `.editorconfig` enforcing LF, repo-local
   `core.autocrlf=false` (the system gitconfig has `autocrlf=true`).
-- Copy the minimal boot/platform/include tree from LoopyPuzzleBobble (video,
-  clock, input) and LoopyManiac (`lp_print.*`, the input pause/rescan, clock
-  rearm).
-- The cart builds in WSL and boots in LoopyMSE to a solid-colour screen.
-- `PACK_BASE` region, descriptor and linker `ASSERT` are in place.
-- **Exit:** `make` produces a bootable `template.bin` showing "No photos".
+- `cart/`:
+  - Kasami's template boot, headers and linker skeleton.
+  - A trimmed video backend (256×240 8bpp framebuffer, 8-row DMA bursts into
+    two pages, palette and flip inside blanking), pad input, and the ITU1
+    clock, all adapted from LoopyPuzzleBobble.
+- Built with `cart\scripts\build.ps1`: git runs on Windows for the build id,
+  the compiler runs in WSL.
+- The ROM region ends at `PACK_OFFSET = 0x40000`, so code that grows into the
+  pack fails to link. The template descriptor sits at ROM offset `0x20`
+  (`cart/README.md`).
+- On-screen text uses **Home Video Font** (GGBotNet, CC0,
+  <https://ggbot.itch.io/home-video-font>): a monospaced 12×14 cell,
+  uppercase, so ~18 characters a line inside the safe margins. UI copy must
+  stay short.
+- Print code (LoopyManiac's `lp_print.*`, input pause/rescan, clock rearm)
+  moves to Phase 3, where it can be tested.
+- **Exit met:** the template shows "No photos" in LoopyMSE. Test ROMs with a
+  valid fake pack header and with a newer format version are detected
+  correctly.
 
 ### Phase 1 — Pack format and ROM patching, end to end with fixtures
 - `docs/pack-format.md`.
