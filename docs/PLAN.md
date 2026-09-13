@@ -124,6 +124,21 @@ File references are to those repos.
    dyes don't look like a CRT. Since the BIOS prints through the palette, a
    print-tuned palette (gamma and saturation adjusted) costs only 512 bytes
    per photo and needs no second pixel buffer.
+7. **Every sticker is filled edge to edge by default.** The crop box always
+   has the printed sticker's exact proportions (calibrated in Phase 3, §8), so
+   nothing prints blank unless the user opts in (Phase 4 crop rules).
+   - **Portrait photos print as portrait stickers.** Cropping a 3:4 photo to
+     a landscape sticker would throw away almost half of it. A tall photo is
+     instead stored rotated 90° in the same 256×240 buffer, so it fills the
+     sticker lengthwise. The `orientation` byte in the pack tells the cart.
+     - *Printing:* the stored buffer is printed as-is, with no cart work.
+     - *Screen:* the cart rotates it back upright into the RAM framebuffer,
+       scaled to 240 px tall with black bars at the sides. That scaling also
+       corrects for any difference between printer-dot and TV-pixel shape.
+       It's one nearest-neighbour pass over 57 KB per photo change, so it's
+       cheap.
+     - *Grid:* the web app bakes an upright thumbnail into the page image.
+   - Storage is the same for either orientation, so the 54-photo budget holds.
 
 ### Photo pack format v1 (big-endian, word-aligned)
 
@@ -150,7 +165,8 @@ ImageRef (16 bytes)
 PhotoEntry
   ImageRef screen
   u16      print_palette_index  (0xFFFF = use screen palette)
-  u16      reserved
+  u8       orientation          (0 = landscape, 1 = portrait: stored rotated 90°)
+  u8       reserved
 
 PageEntry
   ImageRef composite
@@ -232,7 +248,7 @@ loopy-photo-cart/
 ├─ demo/
 │  ├─ prepare_photos.py    originals → upright, sRGB, ≤1600 px, metadata-free
 │  ├─ photos/              the cleaned demo photos (committed)
-│  ├─ manifest.json        order, crops, dither, title
+│  ├─ manifest.json        order, crops, orientation, dither, title
 │  └─ README.md
 ├─ docs/
 │  ├─ PLAN.md  pack-format.md  hardware-notes.md  testing.md
@@ -285,7 +301,9 @@ loopy-photo-cart/
   4. cancel mid-print;
   5. check input and clock still work afterwards;
   6. **measure the printed aspect ratio and orientation** to calibrate the web
-     app's crop box (§8).
+     app's crop box (§8);
+  7. print one portrait (rotated) photo to confirm which rotation direction
+     reads naturally on the sticker.
 - **Exit:** a real sticker matches the screen.
 
 ### Phase 4 — Web app MVP
@@ -312,8 +330,25 @@ loopy-photo-cart/
     decoder (e.g. libheif-js, LGPL, GPL-compatible) is a Phase 5 option.
   - *Failures* (corrupt file, CMYK JPEG, an out-of-memory decode) are reported
     per photo and never abort the batch.
-- Per-photo crop editor: fixed target aspect, pan/zoom, with "fill" or "fit
-  with border" (border colour selectable).
+- **Crop: fill the sticker by default.** No user should have to crop anything
+  for a good result.
+  - Every photo starts auto-cropped to the sticker's exact printed shape. Wide
+    photos get landscape stickers, and tall photos get portrait (rotated)
+    stickers (§3, decision 7).
+  - The starting crop is chosen by content, not just centred. `smartcrop.js`
+    (MIT, runs locally) scores detail and saturation so the subject isn't cut
+    off. If the phone recorded focus or face regions (iPhone XMP regions, which
+    the demo photos had), the crop keeps those regions inside it first. That
+    metadata is read in the browser and never stored.
+  - The user can drag to move the crop and scroll or pinch to zoom it. The crop
+    can never extend past the photo's edges, so the sticker always stays full.
+    They can also flip the sticker orientation or reset to the auto-crop.
+  - Photos whose crop keeps less than about 60% of the picture (panoramas,
+    very tall shots) get a badge in the photo list so they're easy to review.
+  - "Fit whole photo" is an opt-in per photo. The leftover bands are filled
+    with a blurred, enlarged copy of the photo (or a chosen solid colour), so
+    nothing prints blank even then.
+  - The preview shows the crop at its real printed shape, next to the TV view.
 - In a Web Worker:
   - area/Lanczos downscale in linear light;
   - quantize directly in RGB555 space (Wu or k-means, e.g. via `image-q` or a
@@ -386,6 +421,11 @@ loopy-photo-cart/
    Maniac framed at 16:15, and the XS-11 is 40×30 mm. Printing a calibration
    grid on hardware in Phase 3 settles the crop aspect for the web app. The
    user has agreed to a hardware test session.
+   - The result becomes one constant, `STICKER_ASPECT`, in `web/src/core`.
+     Until then 4:3 is the placeholder.
+   - The crop box uses the physical sticker shape. If printer dots aren't
+     square, the crop is resampled to 256×240 non-uniformly, so the sticker
+     shows correct proportions.
 3. **Emulator print clamp: decided, not patching.** LoopyMSE prints only
    224 rows. Emulator tests compare those rows; rows 224–240 are verified on
    hardware only.
@@ -403,7 +443,7 @@ loopy-photo-cart/
      Anyone sharing a built ROM satisfies the source requirement by pointing
      to this public repo.
    - Third-party code must be GPL-2-compatible. MIT, BSD and zlib are fine
-     (e.g. `image-q` is MIT). Apache-2.0 is **not** compatible
+     (e.g. `image-q` and `smartcrop.js` are MIT). Apache-2.0 is **not** compatible
      with GPL-2.0-only, but it is with "or later" via GPLv3; still, avoid it.
 7. **Demo photo privacy: handled.** Originals stay git-ignored in
    `sample-photos/`. Only `demo/prepare_photos.py` output is committed, and
