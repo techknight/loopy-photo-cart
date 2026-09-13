@@ -464,7 +464,43 @@ loopy-photo-cart/
     working afterwards.
   - The hardware test batch above (steps 1–7) is still to do.
 
-### Phase 4 — Web app MVP
+### Phase 4 — Web app MVP ✅ (2026-09-13)
+
+**As built** (`web/`, `docs/web.md`):
+- **Core:** `web/src/core` is pure TypeScript shared by the worker and Node
+  scripts:
+  - Lanczos-3 resampling;
+  - a deterministic median-cut RGB555 quantizer (slot rules as in
+    `docs/pack-format.md`);
+  - Floyd–Steinberg dithering for photos, none for grid pages;
+  - grid pages from committed glyph tables (`cart/tools/mkwebfonts.py`);
+  - the pack encoder, byte-identical to `lpcpack.py` (golden tests);
+  - the ROM patcher, and a validator mirroring `cart/src/pack.c`.
+- **Worker:** decodes one photo at a time with EXIF orientation, keeps a
+  working copy of at most 1024 px, and reports errors per photo.
+- **UI:**
+  - add, drag-reorder and remove photos, with an "N / 54" counter;
+  - a crop editor (drag, wheel or pinch zoom) with landscape/portrait,
+    fill/whole photo (blurred fill) and dither;
+  - a badge on crops that keep under 60% of the photo;
+  - TV, Sticker and Grid previews of the exact bytes;
+  - Build ROM, validated before download.
+- **Privacy:** a CSP limits built pages to their own origin.
+- **Verified:**
+  - 28 Vitest tests, type check and build pass;
+  - a headless Chromium smoke test (`npm run smoke`) builds a ROM with zero
+    off-origin requests;
+  - the Node-built ROM passes `cart/tools/lpcvalidate.py` and boots to the
+    grid in LoopyMSE.
+- **Deviations from the list below:**
+  - a 1024 px working copy, not 1600;
+  - an in-house detail-and-saturation auto-crop, not smartcrop.js, and no
+    iPhone focus regions;
+  - no WASM HEIC decoder (Safari only);
+  - no project .zip save/load;
+  - no OffscreenCanvas fallback.
+
+**Original list:**
 - Vite + TS. Add photos (file picker, drag & drop, multi-select), reorder,
   delete.
 - **Accept photos straight off a phone, with no preparation by the user.** The
@@ -539,7 +575,14 @@ loopy-photo-cart/
   customization, optional captions baked into page composites.
 - Fast paths: cache the neighbouring decoded photo in RAM so prev/next is
   instant, and optionally fade transitions.
-- Service worker for offline use.
+- ✅ Service worker for offline use (`web/public/sw.js`: network first, cache
+  fallback, same-origin only; registered in production builds).
+- Not done, and why:
+  - **print-palette tuning:** needs real stickers to compare;
+  - **title/splash customization and captions:** optional; the grid header is
+    fixed as "PHOTOS" by the user's choice;
+  - **the neighbouring-photo cache:** unneeded, since page turns were quick
+    on hardware.
 
 ### Phase 6 — Demo ROM and publishing
 - `demo/manifest.json` over `demo/photos/`, which `demo/prepare_photos.py`
@@ -550,6 +593,22 @@ loopy-photo-cart/
 - `release.yml`: tag → GitHub Release with `template.bin`, `loopy-photo-cart-demo.bin`
   and the site deployed to Pages.
 - Make the repo public at publish time (see §8, Pages on private repos).
+- **Status (2026-09-13):**
+  - **Done:**
+    - `demo/manifest.json` with a fixed title, date and dither setting;
+    - `cd web && npm run demo` builds `demo/build/loopy-photo-cart-demo.bin`
+      with the web core, byte-reproducibly (Node's `jpeg-js` decodes; no
+      separate `cli/`);
+    - workflows: `.github/workflows/cart.yml` builds the template,
+      `web.yml` tests, builds, smoke-tests and deploys Pages on `main`, and
+      `release.yml` publishes the template, demo ROM and site zip on a `v*`
+      tag.
+  - **Blocked on the user:**
+    - pushing the workflow files needs the `workflow` scope (run
+      `gh auth refresh -s workflow`);
+    - Pages needs the repository public, or a paid plan, with Pages set to
+      "GitHub Actions";
+    - the first release is a `v*` tag.
 
 ---
 
@@ -562,7 +621,7 @@ loopy-photo-cart/
 | Quantize/dither | Snapshot tests on small images; RGB555 invariants (all palette entries ≤ 0x7FFF, reserved slots fixed) |
 | Cart UI | LoopyMSE with `scripts/capture.ps1`-style screenshot capture; key injection is unreliable, so use PB's `AUTOPILOT` build flag for scripted input |
 | Printing | LoopyMSE `print_*.png` (patched clamp) plus the Phase 3 hardware batch |
-| Web E2E | Playwright: load fixtures → build ROM → assert file size, header and checksum; and **assert zero non-same-origin network requests** |
+| Web E2E | Playwright: load fixtures → build ROM → assert file size, header and checksum; and **assert zero non-same-origin network requests**. ✅ `web/scripts/smoke.mjs` (`npm run smoke`) |
 
 ---
 

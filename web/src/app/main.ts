@@ -459,3 +459,11 @@ $("build").addEventListener("click", async () => {
 });
 
 refreshAll();
+
+// Offline support for the built site (public/sw.js). Not in dev, where it
+// would cache hot-reload modules.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register(new URL("sw.js", document.baseURI)).catch(() => {
+    // Without it the site still works; it just needs the network to load.
+  });
+}

@@ -8,6 +8,7 @@ cart/build/
 # Web app dependencies and output
 web/node_modules/
 web/dist/
+demo/build/
 
 # Python bytecode
 __pycache__/

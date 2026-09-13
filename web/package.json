@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "sync-template": "node scripts/sync-template.mjs",
     "demo-rom": "node scripts/demo-rom.ts",
+    "demo": "node scripts/demo-rom.ts ../demo/build/loopy-photo-cart-demo.bin --manifest ../demo/manifest.json",
     "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {

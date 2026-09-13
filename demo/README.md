@@ -3,6 +3,18 @@
 The demo ROM is a cartridge full of cat photos, built from `photos/` using
 `manifest.json`.
 
+## Building it
+
+```
+cd web
+npm run demo
+```
+
+This builds `demo/build/loopy-photo-cart-demo.bin` with the web app's own
+image and pack code. The manifest fixes the title, date and dither setting,
+so the same commit always gives the same ROM. Tagged releases build and
+publish it (`.github/workflows/release.yml`).
+
 ## Updating the photos
 
 The full-size originals live in `../sample-photos/`. That folder is

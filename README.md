@@ -35,12 +35,14 @@ Everything runs locally in your browser. Your photos are never uploaded.
 
 ## Status
 
-- **Cart:** the viewer, grid and help are confirmed on hardware. Sound and
-  printing work in LoopyMSE; their hardware test is in
+- **Cart:** the viewer and grid are confirmed on hardware. Sound, printing
+  and the help popover work in LoopyMSE; their hardware test is in
   `docs/hardware-test.md`.
-- **Web app:** in progress.
-- **Hosting and releases:** a public site on GitHub Pages and a demo ROM
-  release come last.
+- **Web app:** working. Run `cd web && npm install && npm run dev`; see
+  `docs/web.md`.
+- **Demo ROM:** `cd web && npm run demo` builds it reproducibly.
+- **Hosting and releases:** GitHub Pages and tagged releases are set up as
+  workflows, waiting for the repo to go public.
 
 ## Licence
 

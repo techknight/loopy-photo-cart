@@ -3,11 +3,19 @@
 //
 // Build a ROM from JPEG files with the same core the web app uses, from Node.
 // The browser decodes photos itself; here jpeg-js stands in (JPEG only, no
-// EXIF rotation, which the demo photos don't need).
+// EXIF rotation -- the demo photos are stored upright by
+// demo/prepare_photos.py).
 //
-// Usage: node scripts/demo-rom.ts out.bin photo1.jpg photo2.jpg ...
+// Usage:
+//   node scripts/demo-rom.ts out.bin photo1.jpg photo2.jpg ...
+//   node scripts/demo-rom.ts out.bin --manifest ../demo/manifest.json
+//
+// With a manifest the output is reproducible: its title, date and dither
+// setting are used instead of today's date, and photo paths are relative to
+// the manifest.
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import jpeg from "jpeg-js";
 
 import {
@@ -23,9 +31,34 @@ import {
 
 const WORK_MAX = 1024;
 
-const [out, ...paths] = process.argv.slice(2);
+interface Manifest {
+  title?: string;
+  created?: string;
+  dither?: boolean;
+  photos: string[];
+}
+
+const args = process.argv.slice(2);
+const out = args.shift();
+let paths: string[] = [];
+let title = "Demo";
+let created: string = new Date().toISOString().slice(0, 10);
+let dither = true;
+
+if (args[0] === "--manifest" && args[1]) {
+  const manifestPath = resolve(args[1]);
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Manifest;
+  paths = manifest.photos.map((p) => resolve(dirname(manifestPath), p));
+  title = manifest.title ?? title;
+  created = manifest.created ?? created;
+  dither = manifest.dither ?? dither;
+} else {
+  paths = args;
+}
+
 if (!out || paths.length === 0) {
   console.error("usage: node scripts/demo-rom.ts out.bin photo.jpg ...");
+  console.error("       node scripts/demo-rom.ts out.bin --manifest manifest.json");
   process.exit(2);
 }
 
@@ -37,11 +70,11 @@ const rendered = paths.map((path) => {
   const orientation = work.height > work.width ? "portrait" : "landscape";
   const crop = defaultCrop(work.width, work.height, suggestFocus(work, stickerAspect(orientation)));
   console.log(`${path}: ${raw.width}x${raw.height}, ${crop.orientation}`);
-  return renderPhoto(work, crop, true);
+  return renderPhoto(work, crop, dither);
 });
 
 const template = new Uint8Array(readFileSync(new URL("../public/template/loopy-photo-cart-template.bin", import.meta.url)));
-const rom = buildCartridge(template, rendered, { title: "Demo", created: new Date().toISOString().slice(0, 10) });
+const rom = buildCartridge(template, rendered, { title, created });
 const report = validateRom(rom);
 if (report.errors.length) {
   console.error(report.errors.join("\n"));
