@@ -1,16 +1,25 @@
 {
   "name": "loopy-photo-cart-web",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "license": "GPL-2.0-or-later",
   "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync-template": "node scripts/sync-template.mjs",
+    "demo-rom": "node scripts/demo-rom.ts",
+    "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
+    "jpeg-js": "^0.4.4",
+    "playwright": "^1.63.0",
     "typescript": "^7.0.2",
+    "vite": "^8.3.0",
     "vitest": "^5.0.0"
   }
 }
