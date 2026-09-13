@@ -338,7 +338,9 @@ a:focus-visible {
 #preview {
   width: 100%;
   max-width: 512px;
-  aspect-ratio: 4 / 3;
+  /* The canvas's own size sets the shape: 256x240 square pixels for the TV
+     and grid, the printed shape for the sticker. */
+  height: auto;
   image-rendering: pixelated;
   display: block;
 }

@@ -13,7 +13,10 @@ import {
   keptFraction,
   LOW_KEPT_FRACTION,
   MAX_PHOTOS,
-  storedRgba,
+  pageRgba,
+  PHOTO_H,
+  STICKER_PREVIEW_W,
+  stickerRgba,
   tvRgba,
   type CropState,
   type Orientation,
@@ -287,18 +290,25 @@ $("grid-next").addEventListener("click", () => {
 
 function drawPreview(): void {
   const canvas = $<HTMLCanvasElement>("preview");
+  // The TV and grid are 256x240 screens of square pixels; the sticker is the
+  // 256x224 photo stretched across to its printed shape.
+  const size = tab === "sticker" ? { w: STICKER_PREVIEW_W, h: PHOTO_H } : { w: 256, h: 240 };
+  if (canvas.width !== size.w || canvas.height !== size.h) {
+    canvas.width = size.w;
+    canvas.height = size.h;
+  }
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, 256, 240);
-  let rgba: Uint8ClampedArray | null = null;
+  ctx.fillRect(0, 0, size.w, size.h);
+  let img: { width: number; height: number; data: Uint8ClampedArray } | null = null;
   if (tab === "grid") {
     const page = pages[pageIndex];
-    if (page) rgba = storedRgba(page);
+    if (page) img = pageRgba(page);
     $("grid-label").textContent = pages.length ? `Page ${pageIndex + 1} / ${pages.length}` : "No pages yet";
   } else if (lastFrame && lastFrame.id === selected) {
-    rgba = tab === "tv" ? tvRgba(lastFrame.frame, lastFrame.orientation) : storedRgba(lastFrame.frame);
+    img = tab === "tv" ? tvRgba(lastFrame.frame, lastFrame.orientation) : stickerRgba(lastFrame.frame);
   }
-  if (rgba) ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), 256, 240), 0, 0);
+  if (img) ctx.putImageData(new ImageData(new Uint8ClampedArray(img.data), img.width, img.height), 0, 0);
 }
 
 // ---------------------------------------------------------------------------

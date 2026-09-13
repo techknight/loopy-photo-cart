@@ -10,6 +10,7 @@ import {
   keptFraction,
   renderUpright,
   STICKER_ASPECT,
+  thumbnailOf,
   type CropState,
 } from "../src/core/crop.ts";
 import { newRgb, rotateClockwise } from "../src/core/image.ts";
@@ -38,7 +39,9 @@ describe("crop", () => {
     expect(r.w / r.h).toBeCloseTo(STICKER_ASPECT);
     expect(r.x).toBe(0);
     expect(r.y + r.h).toBeCloseTo(1200);
-    expect(keptFraction(1600, 1200, s)).toBeCloseTo(0.25);
+    // Zoom 2 keeps a quarter of the largest sticker-shaped box, which is the
+    // full height of a 4:3 photo and STICKER_ASPECT times as wide.
+    expect(keptFraction(1600, 1200, s)).toBeCloseTo((1200 * STICKER_ASPECT * 1200) / 4 / (1600 * 1200));
   });
 
   it("starts tall photos as portrait stickers", () => {
@@ -56,11 +59,27 @@ describe("crop", () => {
     expect(r.y).toBe(0);
   });
 
-  it("renders portrait upright at 240x256 and fit mode at the full size", () => {
+  it("uses the measured printed shape", () => {
+    expect(STICKER_ASPECT).toBeCloseTo((256 * 0.16) / (224 * 0.1425), 10);
+    expect(STICKER_ASPECT).toBeCloseTo(1.2835, 3);
+  });
+
+  it("renders in printer dots: portrait upright at 224x256, fit mode at 256x224", () => {
     const src = gradient(300, 400);
-    expect(renderUpright(src, defaultCrop(300, 400))).toMatchObject({ width: 240, height: 256 });
+    expect(renderUpright(src, defaultCrop(300, 400))).toMatchObject({ width: 224, height: 256 });
     const fit = renderUpright(src, { ...defaultCrop(300, 400), orientation: "landscape", mode: "fit" });
-    expect(fit).toMatchObject({ width: 256, height: 240 });
+    expect(fit).toMatchObject({ width: 256, height: 224 });
+  });
+
+  it("cuts thumbnails from the crop at square pixels", () => {
+    // A photo whose left half is black and right half white: a centred
+    // thumbnail of a full-width crop must be half and half.
+    const src = newRgb(1284, 1000);
+    for (let y = 0; y < 1000; y++) src.data.fill(255, (y * 1284 + 642) * 3, (y * 1284 + 1284) * 3);
+    const t = thumbnailOf(src, defaultCrop(1284, 1000), 64, 60);
+    expect(t).toMatchObject({ width: 64, height: 60 });
+    expect(t.data[(30 * 64 + 10) * 3]).toBeLessThan(10);
+    expect(t.data[(30 * 64 + 54) * 3]).toBeGreaterThan(245);
   });
 
   it("finds the interesting part of a photo", () => {
@@ -79,10 +98,10 @@ describe("crop", () => {
 
 describe("rotateClockwise", () => {
   it("maps stored (x, y) to upright (y, 255 - x)", () => {
-    const up = newRgb(240, 256);
-    up.data[(5 * 240 + 7) * 3] = 99; // upright (7, 5)
+    const up = newRgb(224, 256);
+    up.data[(5 * 224 + 7) * 3] = 99; // upright (7, 5)
     const stored = rotateClockwise(up);
-    expect(stored).toMatchObject({ width: 256, height: 240 });
+    expect(stored).toMatchObject({ width: 256, height: 224 });
     // upright (ux = 7, uy = 5) is stored (x = 255 - 5, y = 7)
     expect(stored.data[(7 * 256 + 250) * 3]).toBe(99);
   });

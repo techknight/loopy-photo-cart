@@ -43,7 +43,7 @@ export function paste(dst: RgbImage, src: RgbImage, x: number, y: number): void 
   }
 }
 
-/** Upright 240x256 portrait -> stored 256x240, rotated 90 degrees clockwise.
+/** Upright 224x256 portrait -> stored 256x224, rotated 90 degrees clockwise.
  *  Stored pixel (x, y) is upright pixel (y, H - 1 - x). */
 export function rotateClockwise(src: RgbImage): RgbImage {
   const out = newRgb(src.height, src.width);

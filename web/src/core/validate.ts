@@ -9,7 +9,7 @@ import { loopyChecksum } from "./checksum.ts";
 import { PACK_MAGIC, PACK_VERSION, ROM_BASE } from "./constants.ts";
 import { crc32 } from "./crc32.ts";
 import { readDescriptor } from "./descriptor.ts";
-import { IMAGE_H, IMAGE_PIXELS, IMAGE_W, MAX_PHOTOS, UI_FIRST, UI_PALETTE } from "./palette.ts";
+import { IMAGE_W, MAX_PHOTOS, PAGE_H, PHOTO_H, UI_FIRST, UI_PALETTE } from "./palette.ts";
 
 export interface RomReport {
   errors: string[];
@@ -86,7 +86,8 @@ export function validateRom(rom: Uint8Array): RomReport {
     const pal = u32(off + 8);
     const pix = u32(off + 12);
     const len = u32(off + 16);
-    if (u16(off) !== IMAGE_W || u16(off + 2) !== IMAGE_H || rom[base + off + 4] !== 0 || len !== IMAGE_PIXELS) {
+    const height = photo ? PHOTO_H : PAGE_H;
+    if (u16(off) !== IMAGE_W || u16(off + 2) !== height || rom[base + off + 4] !== 0 || len !== IMAGE_W * height) {
       errors.push(`${what}: bad image header`);
       return;
     }
@@ -130,7 +131,7 @@ export function validateRom(rom: Uint8Array): RomReport {
     for (let c = 0; c < count; c++) {
       const o = base + off + 24 + 4 * c;
       const [x, y, w, h] = [rom[o]!, rom[o + 1]!, rom[o + 2]!, rom[o + 3]!];
-      if (w !== 64 || h !== 60 || x < 4 || y < 4 || x + 68 > IMAGE_W || y + 64 > IMAGE_H) {
+      if (w !== 64 || h !== 60 || x < 4 || y < 4 || x + 68 > IMAGE_W || y + 64 > PAGE_H) {
         errors.push(`page ${p} cell ${c}: bad geometry`);
       }
     }

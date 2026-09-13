@@ -4,8 +4,25 @@
 // Image dimensions and the reserved palette slots (docs/pack-format.md).
 
 export const IMAGE_W = 256;
-export const IMAGE_H = 240;
-export const IMAGE_PIXELS = IMAGE_W * IMAGE_H;
+/** A photo is stored at the printer's own resolution: the sticker shows 256
+ *  dots by 224 lines (measured on hardware; the rest of the BIOS's 241-line
+ *  buffer is cut off). */
+export const PHOTO_H = 224;
+/** A grid page is a whole screen. */
+export const PAGE_H = 240;
+export const PHOTO_PIXELS = IMAGE_W * PHOTO_H;
+export const PAGE_PIXELS = IMAGE_W * PAGE_H;
+
+/** Printer dot size in mm, measured on an XS-11 sticker (200 dots across were
+ *  32 mm, 200 lines down 28.5 mm). Must match cart/tools/lpcpack.py. */
+export const DOT_W_MM = 0.16;
+export const DOT_H_MM = 0.1425;
+
+/** The TV's pixels are square, so the cart shows a photo in its printed shape
+ *  as 256x200 (landscape, letterboxed) or 187x240 (portrait, pillarboxed).
+ *  Must match cart/src/lpc.h. */
+export const TV_LANDSCAPE_H = 200;
+export const TV_PORTRAIT_W = 187;
 
 export const MAX_PHOTOS = 54;
 export const CELLS_PER_PAGE = 9;

@@ -9,10 +9,10 @@ import { PACK_HEADER_SIZE, PACK_MAGIC, PACK_VERSION } from "./constants.ts";
 import {
   CELLS_PER_PAGE,
   CURSOR_RING,
-  IMAGE_H,
-  IMAGE_PIXELS,
   IMAGE_W,
   MAX_PHOTOS,
+  PAGE_H,
+  PHOTO_H,
   ORIENT_LANDSCAPE,
   ORIENT_PORTRAIT,
   THUMB_H,
@@ -66,10 +66,11 @@ function checkPalette(p: ArrayLike<number>, what: string): void {
   }
 }
 
-function checkImage(img: PackImage, what: string): void {
+/** Photos are 256x224 (printer dots), grid pages 256x240 (a screen). */
+function checkImage(img: PackImage, what: string, height: number): void {
   checkPalette(img.palette, what);
-  if (img.pixels.length !== IMAGE_PIXELS) {
-    throw new PackError(`${what}: ${img.pixels.length} pixels, not ${IMAGE_PIXELS}`);
+  if (img.pixels.length !== IMAGE_W * height) {
+    throw new PackError(`${what}: ${img.pixels.length} pixels, not ${IMAGE_W * height}`);
   }
 }
 
@@ -117,21 +118,21 @@ export function encodePack(
     throw new PackError("page count must be 0 or ceil(photos / 9)");
   }
   photos.forEach((p, i) => {
-    checkImage(p.image, `photo ${i}`);
+    checkImage(p.image, `photo ${i}`, PHOTO_H);
     if (p.orientation !== ORIENT_LANDSCAPE && p.orientation !== ORIENT_PORTRAIT) {
       throw new PackError(`photo ${i}: bad orientation ${p.orientation}`);
     }
     if (p.printPalette) checkPalette(p.printPalette, `photo ${i} print palette`);
   });
   pages.forEach((pg, i) => {
-    checkImage(pg.image, `page ${i}`);
+    checkImage(pg.image, `page ${i}`, PAGE_H);
     const expected = Math.min(CELLS_PER_PAGE, photos.length - i * CELLS_PER_PAGE);
     if (pg.firstPhoto !== i * CELLS_PER_PAGE || pg.cells.length !== expected) {
       throw new PackError(`page ${i}: must hold photos ${i * CELLS_PER_PAGE}.. in ${expected} cells`);
     }
     for (const [x, y, w, h] of pg.cells) {
       if (w !== THUMB_W || h !== THUMB_H || x < CURSOR_RING || y < CURSOR_RING ||
-          x + w + CURSOR_RING > IMAGE_W || y + h + CURSOR_RING > IMAGE_H) {
+          x + w + CURSOR_RING > IMAGE_W || y + h + CURSOR_RING > PAGE_H) {
         throw new PackError(`page ${i}: cell is not a 64x60 thumbnail with room for the cursor ring`);
       }
     }
@@ -158,13 +159,13 @@ export function encodePack(
     blobs.padTo4();
     return off;
   };
-  const putImage = (img: PackImage): Uint8Array => {
+  const putImage = (img: PackImage, height: number): Uint8Array => {
     const paletteOff = put(paletteBytes(img.palette));
     const pixelsOff = put(img.pixels);
     const ref = new Uint8Array(20);
     const v = new DataView(ref.buffer);
     v.setUint16(0, IMAGE_W);
-    v.setUint16(2, IMAGE_H);
+    v.setUint16(2, height);
     v.setUint32(8, paletteOff);
     v.setUint32(12, pixelsOff);
     v.setUint32(16, img.pixels.length);
@@ -175,14 +176,14 @@ export function encodePack(
   const tv = new DataView(tables.buffer);
   let t = 0;
   for (const p of photos) {
-    tables.set(putImage(p.image), t);
+    tables.set(putImage(p.image, PHOTO_H), t);
     const printOff = p.printPalette ? put(paletteBytes(p.printPalette)) : 0;
     tv.setUint32(t + 20, printOff);
     tv.setUint8(t + 24, p.orientation);
     t += PHOTO_SIZE;
   }
   for (const pg of pages) {
-    tables.set(putImage(pg.image), t);
+    tables.set(putImage(pg.image, PAGE_H), t);
     tv.setUint16(t + 20, pg.firstPhoto);
     tv.setUint8(t + 22, pg.cells.length);
     pg.cells.forEach(([x, y, w, h], c) => tables.set([x, y, w, h], t + 24 + c * 4));

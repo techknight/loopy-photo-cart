@@ -9,8 +9,8 @@ import { HOME_VIDEO, PUBLIC_PIXEL } from "./fonts.gen.ts";
 import type { Cell, PackPage } from "./pack.ts";
 import {
   CELLS_PER_PAGE,
-  IMAGE_H,
   IMAGE_W,
+  PAGE_H,
   THUMB_H,
   THUMB_W,
   UI_ACCENT,
@@ -33,15 +33,15 @@ export const CONTROLS = ["A: View", "D: Show Help"] as const;
 
 /** Draw the page header into an indexed page. */
 export function drawHeader(pixels: Uint8Array, page: number, pageCount: number): void {
-  drawText(pixels, IMAGE_W, IMAGE_H, HOME_VIDEO, HEADER_X, HEADER_Y, HEADER_TITLE, UI_ACCENT);
+  drawText(pixels, IMAGE_W, PAGE_H, HOME_VIDEO, HEADER_X, HEADER_Y, HEADER_TITLE, UI_ACCENT);
   CONTROLS.forEach((line, i) =>
-    drawHint(pixels, IMAGE_W, IMAGE_H, PUBLIC_PIXEL, CONTROLS_X, CONTROLS_YS[i]!, line, UI_WHITE),
+    drawHint(pixels, IMAGE_W, PAGE_H, PUBLIC_PIXEL, CONTROLS_X, CONTROLS_YS[i]!, line, UI_WHITE),
   );
   const counter = `${page + 1}/${pageCount}`;
   drawText(
     pixels,
     IMAGE_W,
-    IMAGE_H,
+    PAGE_H,
     HOME_VIDEO,
     HEADER_RIGHT - HOME_VIDEO.cellW * counter.length,
     HEADER_Y,
@@ -63,11 +63,11 @@ export function renderPages(thumbs: readonly RgbImage[]): PackPage[] {
   for (let p = 0; p < pageCount; p++) {
     const chunk = thumbs.slice(p * CELLS_PER_PAGE, (p + 1) * CELLS_PER_PAGE);
     const cells = cellsFor(chunk.length);
-    const canvas = newRgb(IMAGE_W, IMAGE_H);
+    const canvas = newRgb(IMAGE_W, PAGE_H);
     chunk.forEach((thumb, i) => paste(canvas, thumb, cells[i]![0], cells[i]![1]));
     const image = quantize(canvas, false);
 
-    const inside = new Uint8Array(IMAGE_W * IMAGE_H);
+    const inside = new Uint8Array(IMAGE_W * PAGE_H);
     for (const [x, y, w, h] of cells) {
       for (let row = y; row < y + h; row++) inside.fill(1, row * IMAGE_W + x, row * IMAGE_W + x + w);
     }

@@ -13,7 +13,8 @@ import { cellsFor } from "../src/core/pages.ts";
 import { rgb555, UI_FIRST, UI_PALETTE } from "../src/core/palette.ts";
 
 const W = 256;
-const H = 240;
+const PHOTO_H = 224;
+const PAGE_H = 240;
 
 function palette(seed: number): number[] {
   const p = [0];
@@ -21,7 +22,7 @@ function palette(seed: number): number[] {
   return p.concat(UI_PALETTE);
 }
 
-function image(seed: number): PackImage {
+function image(seed: number, H = PHOTO_H): PackImage {
   const pixels = new Uint8Array(W * H);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) pixels[y * W + x] = ((x * seed + y) % 247) + 1;
   return { palette: palette(seed), pixels };
@@ -37,7 +38,7 @@ describe("encodePack", () => {
         { image: image(5), orientation: 1, printPalette: printPalette.concat(UI_PALETTE) },
         { image: image(11), orientation: 0 },
       ],
-      [{ image: image(7), firstPhoto: 0, cells: cellsFor(3) }],
+      [{ image: image(7, PAGE_H), firstPhoto: 0, cells: cellsFor(3) }],
       { title: "Golden", tool: "mkgolden_web", created: "2026-09-13" },
     );
     const golden = new Uint8Array(readFileSync(new URL("./fixtures/pack-pages.bin", import.meta.url)));
@@ -53,7 +54,11 @@ describe("encodePack", () => {
 
   it("refuses the wrong page count", () => {
     const photos = Array.from({ length: 10 }, () => ({ image: image(3), orientation: 0 }));
-    expect(() => encodePack(photos, [{ image: image(7), firstPhoto: 0, cells: cellsFor(9) }])).toThrow(PackError);
+    expect(() => encodePack(photos, [{ image: image(7, PAGE_H), firstPhoto: 0, cells: cellsFor(9) }])).toThrow(PackError);
+  });
+
+  it("refuses a photo at page height", () => {
+    expect(() => encodePack([{ image: image(3, PAGE_H), orientation: 0 }])).toThrow(PackError);
   });
 
   it("refuses 55 photos", () => {

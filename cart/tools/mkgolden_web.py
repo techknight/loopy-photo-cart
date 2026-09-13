@@ -8,8 +8,9 @@
 # Golden files for the web app's pack encoder and page text renderer:
 #
 #   web/test/fixtures/pack-pages.bin  lpcpack.encode_pack over three synthetic
-#                                     photos (one portrait with a print
-#                                     palette) and one grid page, with meta
+#                                     256x224 photos (one portrait with a
+#                                     print palette) and one 256x240 grid
+#                                     page, with meta
 #   web/test/fixtures/header.bin      a 256x240 page of UI_BG with the grid
 #                                     header drawn by lpcimage ("PHOTOS", the
 #                                     hints, "1/6")
@@ -30,7 +31,7 @@ import lpcpack
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(REPO, "web", "test", "fixtures")
 
-W, H = lpcpack.IMAGE_W, lpcpack.IMAGE_H
+W = lpcpack.IMAGE_W
 
 
 def palette(seed):
@@ -38,29 +39,29 @@ def palette(seed):
                    for i in range(1, lpcpack.UI_FIRST)] + lpcpack.UI_PALETTE)
 
 
-def pixels(seed):
-    return bytes(((x * seed + y) % 247) + 1 for y in range(H) for x in range(W))
+def pixels(seed, height):
+    return bytes(((x * seed + y) % 247) + 1 for y in range(height) for x in range(W))
 
 
-def image(seed):
-    return lpcpack.Image(palette=palette(seed), pixels=pixels(seed))
+def image(seed, height):
+    return lpcpack.Image(palette=palette(seed), pixels=pixels(seed, height))
 
 
 def main():
     print_palette = ([0] + [lpcpack.rgb555(31 - (i >> 3), i >> 3, 15)
                             for i in range(1, lpcpack.UI_FIRST)] + lpcpack.UI_PALETTE)
     photos = [
-        lpcpack.Photo(image=image(3)),
-        lpcpack.Photo(image=image(5), orientation=lpcpack.ORIENT_PORTRAIT,
+        lpcpack.Photo(image=image(3, lpcpack.PHOTO_H)),
+        lpcpack.Photo(image=image(5, lpcpack.PHOTO_H), orientation=lpcpack.ORIENT_PORTRAIT,
                       print_palette=print_palette),
-        lpcpack.Photo(image=image(11)),
+        lpcpack.Photo(image=image(11, lpcpack.PHOTO_H)),
     ]
     cells = [(lpcimage.CELL_XS[i % 3], lpcimage.CELL_YS[i // 3], 64, 60) for i in range(3)]
-    pages = [lpcpack.Page(image=image(7), first_photo=0, cells=cells)]
+    pages = [lpcpack.Page(image=image(7, lpcpack.PAGE_H), first_photo=0, cells=cells)]
     pack = lpcpack.encode_pack(photos, pages, meta={
         "title": "Golden", "tool": "mkgolden_web", "created": "2026-09-13"})
 
-    header = bytearray([lpcimage.UI_BG]) * (W * H)
+    header = bytearray([lpcimage.UI_BG]) * (W * lpcpack.PAGE_H)
     lpcimage._draw_text(header, lpcimage.HEADER_X, lpcimage.HEADER_Y, lpcimage.HEADER_TITLE,
                         lpcimage.UI_ACCENT)
     for line, y in zip(lpcimage.CONTROLS, lpcimage.CONTROLS_YS):

@@ -4,8 +4,10 @@
 // From photo pixels and crop choices to a finished cartridge ROM.
 
 import type { CropState } from "./crop.ts";
-import { renderUpright, thumbnail } from "./crop.ts";
+import { renderUpright, thumbnailOf } from "./crop.ts";
 import type { PixelSource, RgbImage } from "./image.ts";
+// Photos: renderUpright gives printer dots (256x224 or 224x256); thumbnails
+// come from the crop at square pixels (thumbnailOf).
 import { rotateClockwise } from "./image.ts";
 import type { PackPhoto } from "./pack.ts";
 import { encodePack, PackError } from "./pack.ts";
@@ -32,7 +34,7 @@ export function renderPhoto(src: PixelSource, crop: CropState, dither: boolean):
       image: { palette: q.palette, pixels: q.pixels },
       orientation: portrait ? ORIENT_PORTRAIT : ORIENT_LANDSCAPE,
     },
-    thumb: thumbnail(upright, THUMB_W, THUMB_H),
+    thumb: thumbnailOf(src, crop, THUMB_W, THUMB_H),
   };
 }
 

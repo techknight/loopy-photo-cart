@@ -87,7 +87,7 @@ GitHub plan (docs/PLAN.md §8).
    largest sticker-shaped box sits (`saliency.ts`). Tall photos start as
    portrait stickers.
 4. **Render:** the crop box, or the whole photo over a blurred fill, is
-   resampled with Lanczos-3 to 256×240 (240×256 for portrait, then rotated
+   resampled with Lanczos-3 to 256×224 printer dots (224×256 for portrait, then rotated
    90° clockwise).
 5. **Quantize:** a deterministic median cut over RGB555 picks colours for
    slots 1–247. Slot 0 is black, and slots 248–255 are the UI colours, which
