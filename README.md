@@ -35,13 +35,11 @@ Everything runs locally in your browser. Your photos are never uploaded.
 | `demo/` | The demo ROM's photos |
 | `docs/PLAN.md` | Architecture, phases and decisions |
 | `docs/pack-format.md` | The photo pack format inside a ROM |
-| `docs/hardware-test.md` | The checklist for testing on a real Loopy |
 
 ## Status
 
-- **Cart:** the viewer and grid are confirmed on hardware. Sound, printing
-  and the help popover work in LoopyMSE; their hardware test is in
-  `docs/hardware-test.md`.
+- **Cart:** confirmed on a real Loopy, including printing, sound and the
+  help popover.
 - **Web app:** working. Run `cd web && npm install && npm run dev`; see
   `docs/web.md`.
 - **Demo ROM:** `cd web && npm run demo` builds it reproducibly.

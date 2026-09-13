@@ -5,7 +5,7 @@
 # Licensed under the GNU General Public License, version 2 or later; see
 # COPYING.md.
 #
-# Build a calibration ROM for the sticker printer (docs/hardware-test.md).
+# Build a calibration ROM for the sticker printer.
 #
 # Two test charts, printed and measured, settle what the web app's crop box
 # needs (docs/PLAN.md section 8):
