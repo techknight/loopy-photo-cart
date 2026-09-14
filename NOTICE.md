@@ -62,6 +62,6 @@ turn them into `cart/src/music_*.h`, are in `cart/assets/music/`
 
 ## References
 
-LoopyDOOM was also used as a reference for hardware behaviour. LoopyMSE, by
-kasami (GPL-3), was used only as a reference for how the hardware behaves; no
-code was copied from it.
+LoopyDOOM was also used as a reference for hardware behaviour.
+[LoopyMSE](https://github.com/LoopyMSE/LoopyMSE) (GPL-3) was used only as a
+reference for how the hardware behaves; no code was copied from it.
