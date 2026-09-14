@@ -7,6 +7,10 @@ printer.
 **Make your own at <https://loopyphotocart.com>.** Everything runs in your
 browser. Your photos are never uploaded.
 
+## Demo Video
+
+[![Photo of a pastry displayed via Loopy Photo Cart](https://img.youtube.com/vi/2INZK66mI3E/0.jpg)](https://www.youtube.com/watch?v=2INZK66mI3E)
+
 ## Making a cartridge
 
 1. Open <https://loopyphotocart.com> and add up to 54 photos.
